@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>リアルタイムチャット (Mojolicious::Lite) / Mojoliciousサンプル - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="WebSocketを使ったリアルタイムチャットのサンプルです。複数の画面を開いても他の画面に書き込みがすぐに反映されます。">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <ol class="bread" itemscope itemtype="http://schema.org/BreadcrumbList">
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/">
+      <span itemprop="name">Perl</span>
+    </a>
+    <meta itemprop="position" content="1" />
+  </li>
+  &#8250;
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/blog/20140319139520.html">
+      <span itemprop="name">Mojolicious</span>
+    </a>
+    <meta itemprop="position" content="2" />
+  </li>
+</ol>
+<h2><a href="/blog/20100403127089.html">リアルタイムチャット (Mojolicious::Lite) / Mojoliciousサンプル</a></h2>
+<p>
+  WebSocketを使ったリアルタイムチャットのサンプルです。複数の画面を開いても他の画面に書き込みがすぐに反映されます。
+</p>
+<p>
+  [f:id:perlcodesample:20100418234248p:image]
+</p>
+<h3>ソースコード</h3>
+<pre>
+use strict;
+use warnings;
+
+use Mojolicious::Lite;
+my $clients = {};
+
+websocket '/' =&gt; sub {
+  my $self = shift;
+
+  # Client id
+  my $cid = "$self";
+  
+  # Resist controller
+  $clients-&gt;{$cid}{controller} = $self;
+  
+  # Receive message
+  $self-&gt;on('message' =&gt; sub {
+    my ($self, $message) = @_;
+    
+    # Send message to all clients
+    foreach my $cid (keys %$clients) {
+      $clients-&gt;{$cid}{controller}-&gt;send($message);
+    }
+  });
+  
+  # Finish
+  $self-&gt;on('finish' =&gt; sub {
+      
+    # Remove client
+    delete $clients-&gt;{$cid};
+  });
+};
+
+get '/' =&gt; 'index';
+
+app-&gt;start;
+
+__DATA__
+
+@@ index.html.ep
+% my $url = $self-&gt;req-&gt;url-&gt;to_abs-&gt;scheme($self-&gt;req-&gt;is_secure ? 'wss' : 'ws')-&gt;path( '/' );
+&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8"&gt;
+  &lt;title&gt;Mojo Websocket Demo&lt;/title&gt;
+
+  &lt;script type="text/javascript"&gt;
+    // only load the flash fallback when needed
+    if ( !( 'WebSocket' in window ) ) {
+      document.write([
+        '&lt;scr'+'ipt type="text/javascript" src="web-socket-js/swfobject.js"&gt;&lt;/scr'+'ipt&gt;',
+        '&lt;scr'+'ipt type="text/javascript" src="web-socket-js/FABridge.js"&gt;&lt;/scr'+'ipt&gt;',
+        '&lt;scr'+'ipt type="text/javascript" src="web-socket-js/web_socket.js"&gt;&lt;/scr'+'ipt&gt;'
+      ].join(''));
+    }
+  &lt;/script&gt;
+  &lt;script type="text/javascript"&gt;
+    if ( WebSocket.__initialize ) {
+      // Set URL of your WebSocketMain.swf here:
+      WebSocket.__swfLocation = 'web-socket-js/WebSocketMain.swf';
+    }
+
+    // example copied from web-socket-js/sample.html
+    var ws, input, clock;
+
+    function init() {
+      
+      // Connect to Web Socket.
+      ws = new WebSocket('&lt;%= $url %&gt;');
+      
+      // Receive message
+      ws.onmessage = function(e) {
+        // Write message
+        var message = document.createElement('div');
+        message.appendChild(document.createTextNode(e.data));
+        var display = document.getElementById( 'display' );
+        display.appendChild(message);
+      };
+    }
+
+    function sendChatMessage() {
+      var input = document.getElementById('message-box');
+      var message = input.value;
+      
+      // Send message
+      ws.send(message);
+      input.value = "";
+    }
+    
+    window.onload = init;
+  &lt;/script&gt;
+&lt;/head&gt;
+&lt;div id="display" style="width:500px; height:200px; border:1px solid black"&gt;&lt;/div&gt;
+
+&lt;form onsubmit="sendChatMessage(); return false;"&gt;
+  &lt;input size="60" type="text" id="message-box"&gt;
+  &lt;input type="submit" onclick="sendChatMessage(); return false;" value=Send &gt;
+&lt;/form&gt;
+&lt;/html&gt;
+</pre>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

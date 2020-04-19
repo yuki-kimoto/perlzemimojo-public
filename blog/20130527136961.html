@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>リバースプロキシからSSL通信であることを伝える / Mojolicious - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="リバースプロキシを利用するときSSL通信が行われていることをMojoliciousに教えるにはX-Forwarded-HTTPSリクエストヘッダを設定します。">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <ol class="bread" itemscope itemtype="http://schema.org/BreadcrumbList">
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/">
+      <span itemprop="name">Perl</span>
+    </a>
+    <meta itemprop="position" content="1" />
+  </li>
+  &#8250;
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/blog/20140319139520.html">
+      <span itemprop="name">Mojolicious</span>
+    </a>
+    <meta itemprop="position" content="2" />
+  </li>
+</ol>
+<h2><a href="/blog/20130527136961.html">リバースプロキシからSSL通信であることを伝える / Mojolicious</a></h2>
+<p>
+  リバースプロキシを利用するときSSL通信が行われていることをMojoliciousに教えるには<strong>X-Forwarded-HTTPS</strong>リクエストヘッダを設定します。
+</p>
+<p>
+  以下はApacheの例です。
+</p>
+<pre>
+&lt;VirtualHost *:443&gt;
+  ServerName some.com
+  &lt;Proxy *&gt;
+    Order deny,allow
+    Allow from all
+  &lt;/Proxy&gt;
+  ProxyRequests Off
+  ProxyPreserveHost On
+  ProxyPass / http://localhost:20000/ keepalive=On
+  ProxyPassReverse / http://localhost:20000/
+  RequestHeader set X-Forwarded-HTTPS "1"
+&lt;/VirtualHost&gt;
+</pre>
+<p>
+  このようにするとhttpsのスキーマで通信しているのだとMojoliciousが認識しurl_forメソッドなどが正しくhttpsのスキーマを描画するようになります。
+</p>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

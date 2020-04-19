@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>フォームの利用 / Mojolicious入門 - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="ユーザーからのデータを受け取るには、フォームを利用します。フォームの使い方を学びましょう。">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <ol class="bread" itemscope itemtype="http://schema.org/BreadcrumbList">
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/">
+      <span itemprop="name">Perl</span>
+    </a>
+    <meta itemprop="position" content="1" />
+  </li>
+  &#8250;
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/blog/20140319139520.html">
+      <span itemprop="name">Mojolicious</span>
+    </a>
+    <meta itemprop="position" content="2" />
+  </li>
+</ol>
+<h2><a href="/blog/20140421139815.html">フォームの利用 / Mojolicious入門</a></h2>
+<p>
+  ユーザーからのデータを受け取るには、<strong>フォーム</strong>を利用します。フォームの使い方を学びましょう。
+</p>
+<h3>簡単なフォーム</h3>
+<p>
+  まず最初に簡単なフォームを作成してみましょう。テキストボックス、ラジオボタン、テキストエリアに値を入力してもらって、受け取って表示するプログラムを作成してみます。
+</p>
+<pre>
+use Mojolicious::Lite;
+
+# トップページ
+get '/' =&gt; sub {
+  my $self = shift;
+  
+  $self-&gt;render('index');
+};
+
+# データを受け取って処理
+post '/' =&gt; sub {
+  my $self = shift;
+  
+  # パラメーターの取得
+  my $name = $self-&gt;param('name');
+  my $private = $self-&gt;param('private');
+  my $message = $self-&gt;param('message');
+
+  # メッセージがない場合はトップページを表示
+  unless (length $message) {
+    $self-&gt;render('index', error =&gt; 'Message is empty');
+    return;
+  }
+  # フラッシュに保存
+  $self-&gt;flash(name =&gt; $name);
+  $self-&gt;flash(private =&gt; $private);
+  $self-&gt;flash(message =&gt; $message);
+  
+  $self-&gt;redirect_to('/');
+};
+
+app-&gt;start;
+
+__DATA__
+
+@@ index.html.ep
+&lt;%
+  my $error = stash('error');
+%&gt;
+
+% if ($error) {
+  &lt;div style="color:red"&gt;
+    &lt;%= $error %&gt;
+  &lt;/div&gt;
+% }
+
+&lt;form action="&lt;%= url_for %&gt;" method="post" style="border:1px solid gray"&gt;
+  &lt;b&gt;Form&lt;/b&gt;&lt;br&gt;
+  &lt;b&gt;Name:&lt;/b&gt; &lt;%= text_field 'name' %&gt;&lt;br&gt;
+  &lt;b&gt;Private:&lt;/b&gt; Yes&lt;%= radio_button private =&gt; 1 %&gt; / No &lt;%= radio_button private =&gt; 0, checked =&gt; 'checked' %&gt;&lt;br&gt;
+  &lt;b&gt;Message:&lt;/b&gt;&lt;br&gt;
+  &lt;%= text_area 'message', style =&gt; "width:400px; height:100px" %&gt;&lt;br&gt;
+  &lt;input type="submit" value="Post"&gt;
+&lt;/form&gt;
+
+&lt;div&gt;
+  &lt;b&gt;Name&lt;/b&gt;: &lt;%= flash('name') // '' %&gt;&lt;br&gt;
+  &lt;b&gt;Private&lt;/b&gt;: &lt;%= flash('private') // '' %&gt;&lt;br&gt;
+  &lt;b&gt;Message&lt;/b&gt;: &lt;%= flash('message') // '' %&gt;
+&lt;/div&gt;
+</pre>
+<p>
+  このプログラムを実行して、フォームに値を入力してPostボタンを押すと、画面に入力した内容が表示されます。画面の下の部分は次のように表示されると思います。
+</p>
+<pre>
+Name: kimoto
+Private: 0
+Message: Hello
+</pre>
+<p>
+  このプログラムはサンプルのプログラムです。本来ならばユーザーから受け取ったデータは、データベースに保存します。まだデータベースについては解説していませんので、データを保存せずに、そのまま表示するプログラムにしています。
+</p>
+<p>
+  プログラムの各部分を解説します。
+</p>
+<pre>
+# トップページ
+get '/' =&gt; sub {
+  my $self = shift;
+  
+  $self-&gt;render('index');
+};
+</pre>
+<p>
+  これはトップページを表示するルーティングの記述です。いつもどおりの記述です。このページにフォームを記述します。
+</p>
+<h4>フォームの記述</h4>
+<p>
+  フォームは以下のようになっています。
+</p>
+<pre>
+&lt;form action="&lt;%= url_for %&gt;" method="post" style="border:1px solid gray"&gt;
+  &lt;b&gt;Form&lt;/b&gt;&lt;br&gt;
+  &lt;b&gt;Name:&lt;/b&gt; &lt;%= text_field 'name' %&gt;&lt;br&gt;
+  &lt;b&gt;Private:&lt;/b&gt; Yes&lt;%= radio_button private =&gt; 1 %&gt; / No &lt;%= radio_button private =&gt; 0, checked =&gt; 'checked' %&gt;&lt;br&gt;
+  &lt;b&gt;Message:&lt;/b&gt;&lt;br&gt;
+  &lt;%= text_area 'message', style =&gt; "width:400px; height:100px" %&gt;&lt;br&gt;
+  &lt;input type="submit" value="Post"&gt;
+&lt;/form&gt;
+</pre>
+<p>
+  formタグの中には<b>action</b>と<b>method</b>と<b>style</b>という属性がありますね。style属性はスタイルシートを設定するもので、フォームを囲む枠を設定しています。
+</p>
+<p>
+  フォームでデータを送信するときには、一般的にはmethodに<b>post</b>を指定します。postを指定すれば、どんなに大きなデータであっても送信することができます。getを指定した場合は、フォームの値はURLのクエリ文字列として送信されますが、postを指定した場合は、HTTPボディと呼ばれる部分に記述されて、送信されます。
+</p>
+<p>
+  actionには処理をするURLを指定します。今回は同一のURLにしました。同一のURLにしておくと簡単です。
+</p>
+<p>
+  フォームの部品を使う部分で<strong>text_field</strong>ヘルパー、<strong>radio_button</strong>ヘルパー、strong>text_area</strong>ヘルパーを使用しています。
+</p>
+<pre>
+  &lt;b&gt;Name:&lt;/b&gt; &lt;%= text_field 'name' %&gt;&lt;br&gt;
+  &lt;b&gt;Private:&lt;/b&gt; Yes&lt;%= radio_button private =&gt; 1 %&gt; / No &lt;%= radio_button private =&gt; 0 %&gt;&lt;br&gt;
+  &lt;b&gt;Message:&lt;/b&gt;&lt;br&gt;
+  &lt;%= text_area 'message', style =&gt; "width:400px; height:100px" %&gt;&lt;br&gt;
+</pre>
+<p>
+  これらは、タグヘルパーと呼ばれます。利用可能なタグヘルパーについては「<a href="/blog/20110616130993.html">「Mojoliciousのタグヘルパーの一覧</a>」を見てください。
+</p>
+<p>
+  タグヘルパーは、以下のような実際のタグに展開されます。
+</p>
+<pre>
+&lt;form action="/" method="post" style="border:1px solid gray"&gt;
+  &lt;b&gt;Form&lt;/b&gt;&lt;br&gt;
+  &lt;b&gt;Name:&lt;/b&gt; &lt;input name="name" type="text" /&gt;&lt;br&gt;
+  &lt;b&gt;Private:&lt;/b&gt; Yes&lt;input name="private" type="radio" value="1" /&gt; / No &lt;input name="private" type="radio" value="0" /&gt;&lt;br&gt;
+  &lt;b&gt;Message:&lt;/b&gt;&lt;br&gt;
+  &lt;textarea name="message" style="width:400px; height:100px"&gt;&lt;/textarea&gt;&lt;br&gt;
+  &lt;input type="submit" value="Post"&gt;
+&lt;/form&gt;
+</pre>
+<p>
+  タグヘルパーを使うと便利な一番の理由は、フォームを送信した後でも、フォームの値を復元してくれることです。
+</p>
+<p>
+  今回は、メッセージが入力されていない場合は、エラーメッセージを表示するようにしているのですけれど、その場合にでも、フォームの値が保存されます。
+</p>
+<h4>フォームの処理</h4>
+<p>
+  次にフォームを処理する部分です。フォームではmethodにpostを指定しました。このリクエストはpost関数を使って、受け取ることができます。
+</p>
+<pre>
+# データを受け取って処理
+post '/' =&gt; sub { ... };
+</pre>
+<p>
+  では、処理を見ていきましょう。まずフォームから渡された値をパラメーターとして受け取っています。paramメソッドは、HTTPのGETメソッドであっても、POSTメソッドであっても、どちらでも値を受け取ることができます。
+</p>
+<pre>
+# パラメーターの取得
+my $name = $self-&gt;param('name');
+my $private = $self-&gt;param('private');
+my $message = $self-&gt;param('message');
+</pre>
+<p>
+  次にメッセージがない場合は、処理をエラーにしています。スタッシュのerrorという値を設定して、indexを描画します。途中で処理を抜けたい場合は、returnを返しましょう。
+</p>
+<pre>
+  # メッセージがない場合はトップページを表示
+  unless (length $message) {
+    $self-&gt;render('index', error =&gt; 'Message is empty');
+    return;
+  }
+</pre>
+<p>
+  本来ならば、データベースなどにデータを保存するのですが、今回はまだデータベースの処理について書いていませんので、フラッシュに保存しています。
+</p>
+<p>
+  フラッシュとは、クライアントサイドに保存されるデータで、次の画面の遷移のときまで保存されるデータです。flashメソッドで設定と取得を行うことができます。フラッシュについては、セッションを解説するときに、詳しく解説します。
+</p>
+<pre>
+  # フラッシュに保存
+  $self-&gt;flash(name =&gt; $name);
+  $self-&gt;flash(private =&gt; $private);
+  $self-&gt;flash(message =&gt; $message);
+</pre>
+<p>
+  最後にリダイレクトを行って、最初のページを表示します。
+</p>
+<pre>
+  $self-&gt;redirect_to('/');
+</pre>
+<p>
+  このようにフォームを使うとユーザーのデータを受け取ることができます。
+</p>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

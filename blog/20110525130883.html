@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>Mojolicious::Liteでさまざまなルートを記述する - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="Mojolicious::Liteでさまざまなルートを記述してみましょう。">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <ol class="bread" itemscope itemtype="http://schema.org/BreadcrumbList">
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/">
+      <span itemprop="name">Perl</span>
+    </a>
+    <meta itemprop="position" content="1" />
+  </li>
+  &#8250;
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/blog/20140319139520.html">
+      <span itemprop="name">Mojolicious</span>
+    </a>
+    <meta itemprop="position" content="2" />
+  </li>
+</ol>
+<h2><a href="/blog/20110525130883.html">Mojolicious::Liteでさまざまなルートを記述する</a></h2>
+<p>
+  Mojolicious::Liteでさまざまなルートを記述してみましょう。
+</p>
+<h3>GETメソッドとPOSTメソッド</h3>
+<p>
+  GETメソッドによる「/」へのルートです。GETメソッドはページを取得するときや検索を行うときに利用されることが多いです。
+</p>
+<pre>
+# Via get method
+use Mojolicious::Lite;
+get '/' =&gt; sub { shift-&gt;render(text =&gt; 'Hello') };
+app-&gt;start;
+</pre>
+<p>
+  次はPOSTメソッドによる「/create」へのルートです。POSTメソッドは新しい記事の投稿や更新、削除などサーバーに存在するデータに対して変更を行う場合に利用されることが多いです。一般的にフォームの送信処理で利用すると考えるとよいでしょう。
+</p>
+<pre>
+# Via post method
+use Mojolicious::Lite;
+get '/' =&gt; 'index';
+post '/create' =&gt; sub {
+  my $self = shift;
+  
+  my $title = $self-&gt;param('title');
+  
+  $self-&gt;render(text =&gt; $title);
+};
+app-&gt;start;
+
+__DATA__
+
+@@ index.html.ep
+&lt;html&gt;
+  &lt;head&gt;&lt;title&gt;Top Page&lt;/title&gt;&lt;/head&gt;
+  &lt;body&gt;
+    &lt;form method="post" action="&lt;%= url_for '/create' %&gt;" &gt;
+      &lt;div&gt;Title: &lt;input type="text" name="title"&gt;&lt;/div&gt;
+      &lt;div&gt;&lt;input type="submit" value="Send"&gt;&lt;/div&gt;
+    &lt;/form&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</pre>
+<h3>プレースホルダーの利用</h3>
+<p>
+  URLの中にはプレースホルダを含めることができます。「:名前」のようにコロンで始めます。プレースホルダは変数のようなものだと考えればよいでしょう。
+</p>
+<pre>
+# Place holder
+get '/entry/:date' =&gt; sub {
+  my $self = shift;
+  
+  my $date = $self-&gt;param('date');
+  
+  $self-&gt;render(text =&gt; $date);
+};
+</pre>
+<p>
+  プレースホルダに指定した値はparamメソッドで取得することができます。
+</p>
+<p>
+  次のURLでアクセスしてみましょう。20111212と表示されます。
+</p>
+<pre>
+/entry/20111212
+</pre>
+<h4>リラックスプレースホルダー</h4>
+<p>
+  ところがこのプレースホルダーには.(ドット)を含めることができません。.もキャプチャしたい場合はリラックスプレースホルダを利用します。リラックスプレースホルダーは「#名前」のようにシャープで始めます。リラックスプレースホルダーについては常に括弧「()」で囲む必要があることに注意してください。(注:Mojolicious3.0くらいからはリラックスプレースホルダーの記法は「.名前」から「#名前」に変更されました。)
+</p>
+<pre>
+# Relax place holder
+get '/entry/(.datetime)' =&gt; sub {
+  my $self = shift;
+  
+  my $datetime = $self-&gt;param('datetime');
+  
+  $self-&gt;render(text =&gt; $datetime);
+};
+</pre>
+<p>
+  次のURLでアクセスしてみましょう。20111212.102232と表示されます。
+</p>
+<pre>
+/entry/20111212.102232
+</pre>
+<h4>ワイルドカードプレースホルダー</h4>
+<p>
+  /(スラッシュ)も含めてマッチさせたい場合はワイルドカードプレースホルダーを使用します。
+</p>
+<pre>
+# Wildcard place holder
+get '/entry/*datetime' =&gt; sub {
+  my $self = shift;
+  
+  my $datetime = $self-&gt;param('datetime');
+  
+  $self-&gt;render(text =&gt; $datetime);
+};
+</pre>
+<p>
+  次のURLでアクセスしてみましょう。20111212/102232と表示されます。
+</p>
+<pre>
+/entry/20111212/102232
+</pre>
+<h3>ルートのテクニック</h3>
+<h4>ふたつのルート</h4>
+<p>
+  次のふたつのURLで同じロジックを実行したい場合はどうしたらよいでしょうか。
+</p>
+<pre>
+/entry
+/entry/20101111
+</pre>
+<p>
+  このような場合はデフォルト値をundefに設定してあげるのがよいでしょう。そうすると上の二つのルートで同じロジックを利用できます。
+</p>
+<pre>
+# Match above two URL
+get '/entry/:date' =&gt; {date =&gt; undef} =&gt; sub {
+  my $self = shift;
+  
+  my $date = $self-&gt;param('date') || 'undefined';
+  
+  $self-&gt;render(text =&gt; $date);
+};
+</pre>
+<h4>静的なルートと動的なルートの混合</h4>
+<p>
+  静的なルートと動的なルートを混ぜたい場合はどうすればよいでしょうか。
+</p>
+<pre>
+# Static route
+/description
+
+# User name
+/kimoto
+/kraih
+/taro
+</pre>
+<p>
+  その場合は静的なルートを上部に記述すればよいだけです。
+</p>
+<pre>
+# Static route
+get '/description' =&gt; sub { shift-&gt;render(text =&gt; 'description') };
+
+# Dinamic route
+get '/:user' =&gt; sub {
+  my $self = shift;
+  
+  my $user = $self-&gt;param('user');
+  
+  $self-&gt;render(text =&gt; $user);
+};
+</pre>
+<p>
+  もう少し難しいルートも記述してみましょう。GithubなどのURLなんかもこのような仕組みになっていますね。
+</p>
+<pre>
+# Description(Static)
+/description
+
+# User name(Dinamic)
+/kimoto
+/kraih
+/taro
+
+# User name and profile (Dinamic and Static)
+/kimoto/profile
+/kraih/profile
+/taro/profile
+
+# User name and project (Dinamic and Dinamic)
+/kimoto/dbix-custom
+/kraih/mojo
+/taro/foobar
+</pre>
+<pre>
+# Description(Static)
+get '/description' =&gt; sub { shift-&gt;render(text =&gt; 'description') };
+
+# User name(Dinamic)
+get '/:user' =&gt; sub {
+  my $self = shift;
+  
+  my $user = $self-&gt;param('user');
+  
+  $self-&gt;render(text =&gt; "User $user");
+};
+
+# User name and profile (Dinamic and Static)
+get '/:user/profile' =&gt; sub {
+  my $self = shift;
+  
+  my $user = $self-&gt;param('user');
+  
+  $self-&gt;render(text =&gt; "$user Profile");
+};
+
+# User name and project (Dinamic and Dinamic)
+get '/:user/:project' =&gt; sub {
+  my $self = shift;
+  
+  my $user = $self-&gt;param('user');
+  my $project = $self-&gt;param('project');
+  
+  $self-&gt;render(text =&gt; "$user $project Project");
+};
+</pre>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

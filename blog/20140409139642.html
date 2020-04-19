@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>アプリケーションとコントローラーの機能 | Mojolicious入門 - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="MojoliciousはWebアプリケーションを作る為の便利な機能をたくさん持っています。その中でも、使用頻度が高いものを紹介したいと思います。最初にこれらを覚えておけば、どうしたらいいかを迷わなくてすむと思います。">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <ol class="bread" itemscope itemtype="http://schema.org/BreadcrumbList">
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/">
+      <span itemprop="name">Perl</span>
+    </a>
+    <meta itemprop="position" content="1" />
+  </li>
+  &#8250;
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/blog/20140319139520.html">
+      <span itemprop="name">Mojolicious</span>
+    </a>
+    <meta itemprop="position" content="2" />
+  </li>
+</ol>
+<h2><a href="/blog/20140409139642.html">アプリケーションとコントローラーの機能 | Mojolicious入門</a></h2>
+<p>
+  MojoliciousはWebアプリケーションを作る為の便利な機能をたくさん持っています。その中でも、使用頻度が高いものを紹介したいと思います。最初にこれらを覚えておけば、どうしたらいいかを迷わなくてすむと思います。
+</p>
+<h3>アプリケーションオブジェクト</h3>
+<p>
+  アプリケーションの本体を表すオブジェクトを<strong>app</strong>関数で取得することができます。app関数はMojolicious::Liteを読み込んだときに、自動的にインポートされます。
+</p>
+<pre>
+use Mojolicious::Lite;
+
+# アプリケーションオブジェクト
+my $app = app;
+</pre>
+<p>
+  アプリケーションオブジェクトはMojoliciousクラスに属しており、Mojoliciousクラスのメソッドを呼び出すことができます。メソッドの一覧については<a href="https://mojodoc.perlzemi.com/mojo-api-reference.html">Mojolicious API リファレンス</a>を参考にしてください。 
+</p>
+<h4>ホームオブジェクト</h4>
+<p>
+  まずMojoliciousのホームディレクトリを表現する<strong>home</strong>オブジェクトを、<b>home</b>メソッドを使って取得することができます。ホームオブジェクトは、Mojo::Homeクラスに属します。
+</p>
+<pre>
+# ホームオブジェクトの取得
+my $home = $app-&gt;home;
+</pre>
+<p>
+  ホームオブジェクトからは、Mojo::Homeクラスのメソッドを呼び出すことができます。Mojo::Homeは<b>rel_file</b>というメソッドを持っており、ホームディレクトリからの相対パスで指定したパスを絶対パスに変換してくれます。
+</p>
+<pre>
+my $path_abs = $home-&gt;rel_file('db/myapp.db');
+</pre>
+<p>
+  これは、データベースファイルなどのパスを取得するときに便利です。
+</p>
+<h3>ログファイル</h3>
+<p>
+  Mojoliciousはログを出力する機構を備えています。アプリケーションと同じディレクトリに<b>log</b>というディレクトリを作成してみてください。
+</p>
+<pre>
+myapp.pl
+log
+</pre>
+<p>
+  するとこのディレクトリの中に<b>development.log</b>というファイルが作成され、ここにアプリケーションのログが出力されます。
+</p>
+<pre>
+log/development.log
+</pre>
+<p>
+  このログファイルに自分で出力することもできますが、そのためにはアプリケーションオブジェクトから<b>log</b>メソッドを使って、ログオブジェクトを取得します。
+</p>
+<pre>
+my $log = $app-&gt;log;
+</pre>
+<p>
+  ログオブジェクトはMojo::Logクラスに属しています。Mojo::Logクラスは、レベルに応じたログの出力を行うことができます。以下のメソッドを使ってレベルに応じてログを出力することができます。
+</p>
+<pre>
+$log-&gt;debug($messgae);
+$log-&gt;info($messgae);
+$log-&gt;warn($messgae);
+$log-&gt;error($messgae);
+$log-&gt;fatal($messgae);
+</pre>
+<p>
+  デバッグのときだけ出力したい情報は<b>debug</b>で出力します。通常は<b>info</b>メソッドで情報を出力して、警告、エラー、致命的なエラーの場合には<b>warn</b>メソッド、<b>error</b>メソッド、<b>fatal</b>メソッドを利用するとよいでしょう。
+</p>
+<p>
+  何がエラーで、何が警告なのかは、プログラマである各自が判断して決めます。
+</p>
+<h3>設定ファイル</h3>
+<p>
+  Mojoliciousでは設定ファイルを簡単に記述することができます。スクリプトと同じディレクトリに、スクリプトと同じ名前で拡張子が<b>conf</b>のファイルを作成してください。
+</p>
+<pre>
+myapp.pl
+myapp.conf
+</pre>
+<p>
+  この設定ファイルはPerlで記述することができます。
+</p>
+<pre>
+{
+  name =&gt; 'kimoto',
+  age =&gt; 19
+}
+</pre>
+<p>
+  ハッシュリファレンスを記述することに注意してください。また日本語を利用する場合は、ファイルはUTF-8で保存してください。
+</p>
+<h4>設定ファイルの読み込み</h4>
+<p>
+  設定ファイルの読み込みは、Configプラグインを利用することで読み込みます。プラグインとは、Mojoliciousの機能を追加する仕組みのことで、Configプラグインは、設定ファイルを読み込むために最初から容易されているプラグインです。
+</p>
+<p>
+  プラグインを利用するには<b>plugin</b>関数またはアプリケーションオブジェクトからpluginメソッドを呼び出します。
+</p>
+<pre>
+plugin('Config');
+$app-&gt;plugin('Config');
+</pre>
+<p>
+  これで、設定ファイルが読みこまれ、<b>config</b>メソッドで設定を取得することができます。
+</p>
+<pre>
+# ひとつづつ取得
+my $name = $app-&gt;config('name');
+my $age = $app-&gt;config('age');
+
+# 全部を取得
+my $config = $app-&gt;config;
+</pre>
+<p>
+  またアプリケーション上で設定を行うことも可能です。
+</p>
+<pre>
+# 設定
+$app-&gt;config('name' =&gt; 'Ken');
+</pre>
+<h3>コントローラーでアプリケーションオブジェクトを取得</h3>
+<p>
+  コントローラーからアプリケーションオブジェクトを取得するには、コントローラーオブジェクトから<b>app</b>メソッドを利用します。
+</p>
+<pre>
+my $app = $c-&gt;app;
+</pre>
+<p>
+  たとえば、以下のように取得できます。アプリケーションオブジェクトを取得できれば、ここから<b>home</b>や<b>log</b>を呼び出すこともできますね。
+</p>
+<pre>
+get '/' =&gt; sub {
+  my $self = shift;
+
+  my $app = $self-&gt;app;
+  $app-&gt;log-&gt;info('Info');
+};
+</pre>
+<h3>静的ファイルの配置</h3>
+<p>
+  CSSやJavaScriptや画像などの静的なファイルを利用したい場合は、アプリケーションと同じディレクトリに<b>public</b>ディレクトリを作成します。
+</p>
+<pre>
+myapp.pl
+public
+</pre>
+<p>
+  そしてこの中にCSSなどの静的ファイルを配置します。
+</p>
+<pre>
+public/css/common.css
+public/js/common.js
+</pre>
+<p>
+  静的ファイルはMojoliciousによって自動的にディスパッチされます。次のURLでアクセスすると、これらのファイルを取得できます。
+</p>
+<pre>
+http://localhost:3000/css/common.css
+http://localhost:3000/js/common.js
+</pre>
+<h3>テンプレートの外部ファイル化</h3>
+<p>
+  Mojolicious::Liteではテンプレートをひとつのファイルの中に書いていましたが、アプリケーションが大きくなってきたときには、外部のファイルに書きたくなってくると思います。
+</p>
+<p>
+  次のアプリケーションを見てください。
+</p>
+<pre>
+use Mojolicious::Lite;
+
+get '/' =&gt; sub {
+  my $self = shift;
+
+  $self-&gt;render('info');
+};
+
+app-&gt;start;
+
+__DATA__
+
+@@ info.html.ep
+Information
+</pre>
+<p>
+  <b>info.html.ep</b>はデータセクションに書かれていますが、このテンプレートを外部ファイル化してみましょう。
+</p>
+<p>
+  まずスクリプトと同じディレクトリに<b>templates</b>というディレクトリを作成します。
+</p>
+<pre>
+myapp.pl
+templates
+</pre>
+<p>
+  この中に、テンプレートファイルを配置します。
+</p>
+<pre>
+templates/info.html.ep
+</pre>
+<p>
+  そして、データセクションは削除してしまいます。
+</p>
+<pre>
+use Mojolicious::Lite;
+
+get '/' =&gt; sub {
+  my $self = shift;
+
+  $self-&gt;render('info');
+};
+
+app-&gt;start;
+</pre>
+<p>
+  このようにテンプレートファイルを外部化すると、文法のエラーが発生した行番号などがわかりやすくなるので、便利です。
+</p>
+<h3>リダイレクト</h3>
+<p>
+  リダイレクトとは、他のURLに転送する機能のことです。Mojolicious::Controllerクラスの<strong>redirect_to</strong>メソッドを使うとリダイレクトを行うことができます。
+</p>
+<pre>
+$c-&gt;redirect_to('/other');
+</pre>
+<h3>これらの機能を使ったサンプル</h3>
+<p>
+  では最後に、ここで紹介した機能を使ったサンプルを作成してみます。
+</p>
+<h4>myapp.pl</h4>
+<p>
+  最初にアプリケーションの本体を記述します。
+</p>
+<pre>
+use Mojolicious::Lite;
+
+# 設定ファイルの読み込み
+plugin('Config');
+
+# ログへの出力
+app-&gt;log-&gt;info('Start application');
+
+# データベースファイルのパスを取得
+my $db_file = app-&gt;home-&gt;rel_file('db/myapp.db');
+
+# / へのアクセス
+get '/' =&gt; sub {
+  my $self = shift;
+
+  # アプリケーション
+  my $app = $self-&gt;app;
+
+  # ログへ出力
+  $app-&gt;log-&gt;info('Access infomation');
+  
+  # データベースファイルのパスを取得
+  my $db_file = $app-&gt;home-&gt;rel_file('db/myapp.db');
+
+  # 設定ファイルから取得
+  my $name = $app-&gt;config('name');
+  my $age = $app-&gt;config('age');
+
+  # テンプレートの描画
+  $self-&gt;render(
+    'info',
+    name =&gt; $name,
+    age =&gt; $age,
+    db_file =&gt; $db_file
+  );
+};
+
+# リダイレクト
+get '/some' =&gt; sub {
+  my $self = shift;
+
+  $self-&gt;redirect_to('/other');
+};
+
+get '/other' =&gt; sub {
+  my $self = shift;
+
+  $self-&gt;render(text =&gt; 'Other');
+};
+
+app-&gt;start;
+</pre>
+<h3>log</h3>
+<p>
+  ログファイルのためのlogディレクトリを作成してください。
+</p>
+<h4>myapp.conf</h4>
+<p>
+  設定ファイルです。myapp.plと同じディレクトリに配置します。
+</p>
+<pre>
+{
+  name =&gt; 'Kimoto',
+  age =&gt; 32
+}
+</pre>
+<h4>public/css/common.css</h4>
+<p>
+  スタイルシートです。publicディレクトリを作成してその中に配置します。
+</p>
+<pre>
+body {
+  background:#FFFFEE;
+}
+</pre>
+<h4>templates/info.html.ep</h4>
+<p>
+  テンプレートファイルです。templatesディレクトリを作成してその中に配置します。
+</p>
+<pre>
+&lt;%
+  my $name = stash('name');
+  my $age = stash('age');
+  my $db_file = stash('db_file');
+%&gt;
+
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;Information&lt;/title&gt;
+    %= stylesheet '/css/common';
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;b&gt;Name&lt;/b&gt;: &lt;%= $name %&gt;&lt;br&gt;
+    &lt;b&gt;Age&lt;/b&gt;: &lt;%= $age %&gt;&lt;br&gt;
+    &lt;b&gt;Database file&lt;/b&gt;: &lt;%= $db_file %&gt;&lt;br&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</pre>
+<p>
+  stylesheet関数はここでは解説していませんが、スタイルシートを読み込むためのテンプレートのヘルパーです。
+</p>
+<h4>アプリケーションの実行</h4>
+<p>
+  ディレクトリ構成が以下のようになっているかを確認してください。
+</p>
+<pre>
+myapp.pl
+myapp.conf
+templates/info.html.ep
+public/css/common.css
+log
+</pre>
+<p>
+  アプリケーションを実行して「/」にアクセスすれば、次のような結果を得ることができます。
+</p>
+<pre>
+Name: Kimoto
+Age: 32
+Database file: /home/kimoto/labo/db/myapp.db
+</pre>
+<p>
+  「/some」にアクセスすれば「/other」にリダイレクトされて、「/other」の内容が表示されます。
+</p>
+<pre>
+Other
+</pre>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

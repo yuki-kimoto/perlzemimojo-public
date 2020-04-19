@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>パラメーターを取得する / Mojolicious - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="Mojoliciousでパラメーターといった場合次の三つの要素を含むことが多いので、まず次の三つのものの区別をしておきましょう。">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <ol class="bread" itemscope itemtype="http://schema.org/BreadcrumbList">
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/">
+      <span itemprop="name">Perl</span>
+    </a>
+    <meta itemprop="position" content="1" />
+  </li>
+  &#8250;
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/blog/20140319139520.html">
+      <span itemprop="name">Mojolicious</span>
+    </a>
+    <meta itemprop="position" content="2" />
+  </li>
+</ol>
+<h2><a href="/blog/20110501130707.html">パラメーターを取得する / Mojolicious</a></h2>
+<p>
+  Mojoliciousでパラメーターといった場合次の三つの要素を含むことが多いので、まず次の三つのものの区別をしておきましょう。
+</p>
+<ol>
+  <li>
+    クエリ文字列に含まれるデータ
+  </li>
+  <li>
+    POSTで送信されたHTTPボディに含まれるデータ
+  </li>
+  <li>
+    URLの中でキャプチャされたデータ
+  </li>
+</ol>
+<h4>(1)クエリ文字列に含まれるデータ</h4>
+<p>
+  クエリ文字列とはURLの?以降に設定されるデータのことです。
+</p>
+<pre>
+http://somehost.com/search?name=Ken&amp;age=19
+</pre>
+<p>
+  それぞれのパラメーター「パラメータ名:値」は「&」で結ばれた形になっています。クエリ文字列によるパラメータは、何かを検索するときによく利用されいます。
+</p>
+<h4>(2)POSTで送信されたHTTPボディに含まれるデータ</h4>
+<p>
+  これはフォームの送信などでHTTPボディに含まれるデータです。
+</p>
+<h4>URLの中でキャプチャされたデータ</h4>
+<p>
+  MojoliciousではURLの中の一部分をパラメータとしてキャプチャすることができます。
+</p>
+<pre>
+get '/entry/:id' =&gt; sub { ... };
+</pre>
+<p>
+  この値もパラメータとして扱われます。
+</p>
+<h3>パラメーターの値の取得</h3>
+<p>
+  パラメーターの値を取得するにはMojolicious::Controllerのparamメソッドを使用します。これは上記の(1),(2),(3)すべてを含みます。
+</p>
+<pre>
+my $age = $c-&gt;param('age');
+</pre>
+<h3>複数の値の取得</h3>
+<p>
+  チェックボックスなどで複数選択された値を取得するにはevery_paramメソッドを呼び出します。
+</p>
+<pre>
+my $contries = $c-&gt;every_param('country');
+</pre>
+<p>
+  <b>注意</b>:リストコンテキストでのparam($name)は、セキュリティ上の問題のために、Mojolicious 6で機能が削除されました。every_paramを使うようにしてください。
+</p>
+<h3>すべてのパラメーターの名前と値を取得</h3>
+<p>
+  パラメーター名をすべて取得するには「$c->req->params->to_hash」を使います。
+</p>
+<pre>
+my $params = $c-&gt;req-&gt;params-&gt;to_hash
+</pre>
+<p>
+  <b>注意</b>:リストコンテキストにおける$c->paramは、セキュリティ上の理由で、Mojolicious 6から廃止されています。すべての名前を取得するには、上記で名前と値を取得した後に「keys @$params」にキーを取得してください。
+</p>
+<p>
+  以下はMojolicious::Liteにおけるサンプルです。
+</p>
+<pre>
+# Mojolicious::Lite
+use Mojolicious::Lite;
+
+use utf8;
+
+get '/entry/:id' =&gt; sub {
+  my $self = shift;
+  my $age = $self-&gt;param('age');
+  my @countries = $self-&gt;param('country');
+  my @names = $self-&gt;param;
+};
+</pre>
+<p>
+  以下はMojoliciousにおけるサンプルです。
+</p>
+<pre>
+package MyApp::Diary;
+
+use Mojo::Base 'Mojolicious::Controller';
+
+sub entry {
+  my $self = shift;
+  my $age = $self-&gt;param('age');
+  my @countries = $self-&gt;param('country');
+  my @names = $self-&gt;param;
+}
+</pre>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

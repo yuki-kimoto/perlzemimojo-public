@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>Mojoliciousですべての処理の前に実行する処理をアンダーで記述する - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="たとえば認証などを行う場合は、すべての処理の直前で、ログインしているかどうかを確認したいと思います。このような場合はアンダーという機能を利用します。ルートからunder()でアンダーを作成して、実行したいコールバックを指定します。コールバックの戻り値が、真の場合は続きの処理を行い、偽の場合は続きの処理を行いません。">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <ol class="bread" itemscope itemtype="http://schema.org/BreadcrumbList">
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/">
+      <span itemprop="name">Perl</span>
+    </a>
+    <meta itemprop="position" content="1" />
+  </li>
+  &#8250;
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/blog/20140319139520.html">
+      <span itemprop="name">Mojolicious</span>
+    </a>
+    <meta itemprop="position" content="2" />
+  </li>
+</ol>
+<h2><a href="/blog/20101112127859.html">Mojoliciousですべての処理の前に実行する処理をアンダーで記述する</a></h2>
+<p>
+  たとえば認証などを行う場合は、すべての処理の直前で、ログインしているかどうかを確認したいと思います。このような場合はアンダーという機能を利用します。ルートからunder()でアンダーを作成して、実行したいコールバックを指定します。コールバックの戻り値が、真の場合は続きの処理を行い、偽の場合は続きの処理を行いません。
+</p>
+<pre>
+sub startup {
+  my $self = shift;
+  
+  my $r = $self-&gt;routes;
+
+  # 認証
+  $r = $r-&gt;under(sub {
+    my $self = shift;
+    
+    if ($self-&gt;session('login_name')) {
+      return 1;
+    }
+    else {
+      my $url = $self-&gt;req-&gt;url-&gt;to_string;
+      if ($url =~ m#login$#) {
+        return 1;
+      }
+      else {
+        $self-&gt;render('denied');
+        return;
+      }
+    }
+  });
+
+  $r-&gt;get('/')-&gt;name('index');
+}
+</pre>
+<p>
+  少し変な記述に見えますが、toメソッドがアンダー自体を返すので上記のような書き方が簡潔だと思います。すべてのルートでアンダーを共有するので、$r自体を上書きしてしまっています。セッションIDが発行されていない場合でログインを行うためのURL以外にアクセスした場合は、認証が拒否の知らせるテンプレートを描画するようにしています。
+</p>
+<h3>Mojolicious 6からの変更点</h3>
+<p>
+  Mojolicious 6からは、ブリッジを作成するbridgeメソッドが、underメソッドに統合されています。機能は同じなので、underメソッドを使うようにしてください。
+</p>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

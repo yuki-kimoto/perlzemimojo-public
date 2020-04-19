@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>ひとことメッセージ掲示板(Mojolicious::Liteバージョン) - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="「ひとことメッセージ掲示板」です。これはかんたんプログラミング CGI/Perlの第5章の1節の「ひとことメッセージ掲示板」をMojolicious::Liteを使って書き直したものになっています。">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <ol class="bread" itemscope itemtype="http://schema.org/BreadcrumbList">
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/">
+      <span itemprop="name">Perl</span>
+    </a>
+    <meta itemprop="position" content="1" />
+  </li>
+  &#8250;
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/blog/20140319139520.html">
+      <span itemprop="name">Mojolicious</span>
+    </a>
+    <meta itemprop="position" content="2" />
+  </li>
+</ol>
+<h2><a href="/blog/20100109126494.html">ひとことメッセージ掲示板(Mojolicious::Liteバージョン)</a></h2>
+<p>
+  「ひとことメッセージ掲示板」です。これは<a href="/blog/20120414133435.html">かんたんプログラミング CGI/Perl</a>の第5章の1節の「ひとことメッセージ掲示板」をMojolicious::Liteを使って書き直したものになっています。
+</p>
+<h3>ひとことメッセージ掲示板 short-message-bbs.pl</h3>
+<p>
+  シンプルな掲示板です。
+</p>
+<p>
+  [f:id:perlcodesample:20100201223906p:image]
+</p>
+<h3>ソースコード</h3>
+<p>
+  ひとことメッセージ掲示板のソースコードです。
+</p>
+<pre>
+#!/usr/bin/env perl
+
+use Mojolicious::Lite;
+use utf8;
+use Encode qw/encode decode/;
+
+# Data file (app is Mojolicious object. home is Mojo::Home object)
+my $data_file = app-&gt;home-&gt;rel_file('bbs-data.txt');
+
+# Create entry
+post '/create' =&gt; sub {
+  my $self = shift; # ($self is Mojolicious::Controller object)
+  
+  # Form data(This data is Already decoded)
+  my $title   = $self-&gt;param('title');
+  my $message = $self-&gt;param('message');
+  
+  # Display error page if title is not exist.
+  return $self-&gt;render(template =&gt; 'error', message  =&gt; 'Please input title')
+    unless $title;
+  
+  # Display error page if message is not exist.
+  return $self-&gt;render(template =&gt; 'error', message =&gt; 'Please input message')
+    unless $message;
+  
+  # Check title length
+  return $self-&gt;render(template =&gt; 'error', message =&gt; 'Title is too long')
+    if length $title &gt; 30;
+  
+  # Check message length
+  return $self-&gt;render(template =&gt; 'error', message =&gt; 'Message is too long')
+    if length $message &gt; 100;
+  
+  # Data and time
+  my ($sec, $min, $hour, $day, $month, $year) = localtime;
+  $month = $month + 1; 
+  $year = $year + 1900;
+  
+  # Format date (yyyy/mm/dd hh:MM:ss)
+  my $datetime = sprintf(
+    "%04s/%02s/%02s %02s:%02s:%02s", 
+    $year,
+    $month,
+    $day,
+    $hour,
+    $min,
+    $sec
+  );
+  
+  # Delete line breakes
+  $message =~ s/\x0D\x0A|\x0D|\x0A//g;
+  
+  # Writing data
+  my $record = join("\t", $datetime, $title, $message) . "\n";
+  
+  # File open to write
+  open my $data_fh, "&gt;&gt;", $data_file
+    or die "Cannot open $data_file: $!";
+  
+  # Encode
+  $record = encode('UTF-8', $record);
+  
+  # Write
+  print $data_fh $record;
+  
+  # Close
+  close $data_fh;
+  
+  # Redirect
+  $self-&gt;redirect_to('index');
+  
+} =&gt; 'create';
+
+get '/' =&gt; sub {
+  my $self = shift;
+  
+  # Open data file(Create file if not exist)
+  my $mode = -f $data_file ? '&lt;' : '+&gt;';
+  open my $data_fh, $mode, $data_file
+    or die "Cannot open $data_file: $!";
+  
+  # Read data
+  my $entry_infos = [];
+  while (my $line = &lt;$data_fh&gt;){
+    $line = decode('UTF-8', $line);
+    
+    chomp $line;
+    my @record = split /\t/, $line;
+    
+    my $entry_info = {};
+    $entry_info-&gt;{datetime} = $record[0];
+    $entry_info-&gt;{title}    = $record[1];
+    $entry_info-&gt;{message}  = $record[2];
+    
+    push @$entry_infos, $entry_info;
+  }
+  
+  # Close
+  close $data_fh;
+  
+  # Reverse data order
+  @$entry_infos = reverse @$entry_infos;
+  
+  # Render index page
+  $self-&gt;render(entry_infos =&gt; $entry_infos);
+
+} =&gt; 'index';
+
+app-&gt;start;
+
+__DATA__
+
+@@ index.html.ep
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta http-equiv="Content-Type" content="text/html;charset=UTF-8" &gt;
+    &lt;title&gt;Short Message BBS&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;h1&gt;Short Message BBS&lt;/h1&gt;
+    &lt;form method="post" action="&lt;%= url_for('create') %&gt;"&gt;
+      &lt;div&gt;
+        Title
+        &lt;input type="text" name="title" &gt;
+      &lt;/div&gt;
+      &lt;div&gt;Message&lt;/div&gt;
+      &lt;div&gt;
+        &lt;textarea name="message" cols="50" rows="10" &gt;&lt;/textarea&gt;
+      &lt;/div&gt;
+      &lt;div&gt;
+        &lt;input type="submit" value="Post" &gt;
+      &lt;/div&gt;
+    &lt;/form&gt;
+    &lt;div&gt;
+  &lt;% for my $entry_info (@$entry_infos) { %&gt;
+      &lt;div&gt;
+        &lt;hr&gt;
+        &lt;div&gt;Title: &lt;%= $entry_info-&gt;{title} %&gt; (&lt;%= $entry_info-&gt;{datetime} %&gt;)&lt;/div&gt;
+        &lt;div&gt;Message&lt;/div&gt;
+        &lt;div&gt;&lt;%= $entry_info-&gt;{message} %&gt;&lt;/div&gt;
+      &lt;div&gt;
+  &lt;% } %&gt;
+    &lt;/div&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+
+
+@@ error.html.ep
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta http-equiv="Content-Type" content="text/html;charset=UTF-8" &gt;
+    &lt;title&gt;Error&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;%= $message %&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</pre>
+<p>
+  <a href="/blog/20100123126425.html">while文</a>を使ってファイルから行を取得して表示しています。
+</p>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

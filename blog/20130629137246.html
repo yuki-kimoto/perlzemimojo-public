@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>テンプレートディレクトリの中のファイルを自動でディスパッチする方法 / Mojoliciousリファレンス - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="テンプレートディレクトリの中のファイルを自動でディスパッチする処理は以下のようにして書くことができます。">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <h2><a href="/blog/20130629137246.html">テンプレートディレクトリの中のファイルを自動でディスパッチする方法 / Mojoliciousリファレンス</a></h2>
+<p>
+  <strong>テンプレートディレクトリの中のファイルを自動でディスパッチ</strong>する処理は以下のようにして書くことができます。
+</p>
+<pre>
+use Mojolicious::Lite;
+
+# 手動でルートを作成
+get '/foo' =&gt; 'foo';
+
+# 自動のルートを作成
+any '/(*Path)' =&gt; sub {
+  my $self = shift;
+  
+  my $path = $self-&gt;param('Path');
+  
+  $self-&gt;render(template =&gt; $path);
+};
+
+app-&gt;start;
+
+__DATA__
+
+@@ foo.html.ep
+foo
+
+@@ bar/baz.html.ep
+bar/baz
+</pre>
+<p>
+  ワイルドカードプレースホルダー(*)を使ってアクセスするパス構造をそのままテンプレートのディレクトリ構造としてわたしています。Pathという大文字を使っているのはpathが予約語だからです。
+</p>
+<p>
+  これでPHPのようなテンプレートディレクトリにファイルを配置する簡便さと、ルートを手動で定義してユーザーに見やすいURLを提供するというふたつの作業のどちらも簡単に行うことができます。
+</p>
+<p>
+  でもこの方法はよいように見えてひとつ問題があって、自動でテンプレートを描画した場合には、テンプレート描画以外の処理ができないということです。テンプレートの中で先頭でロジックを記述して場合に応じてNot Foundや例外ページやJSONを描画することができません。
+</p>
+<p>
+  抜け道はあります。けれども、公式な方法ではないので、サポートされるかどうかは未知な部分がありますし、仕様変更に弱くなります。
+</p>
+<h3>抜け道の方法(Mojolicious 4.0以降)</h3>
+<p>
+  render_maybeでテンプレートを描画して、mojo.finisedを確認します。
+</p>
+<pre>
+use Mojolicious::Lite;
+
+# 手動でルートを作成
+get '/foo' =&gt; sub {
+  my $self = shift;
+  $self-&gt;render_maybe('foo');
+  $self-&gt;stash('mojo.finished') ? undef : $self-&gt;reply-&gt;not_found;
+};
+
+# 自動のルートを作成
+any '/(*Path)' =&gt; sub {
+  my $self = shift;
+  
+  my $path = $self-&gt;param('Path');
+  $self-&gt;render_maybe($path);
+  $self-&gt;stash('mojo.finished') ? undef : $self-&gt;reply-&gt;not_found;
+};
+
+app-&gt;start;
+
+__DATA__
+
+@@ foo.html.ep
+&lt;%
+  $self-&gt;render(json =&gt; {path =&gt; 'foo'});
+  return;
+%&gt;
+
+@@ bar/baz.html.ep
+&lt;%
+  $self-&gt;render(json =&gt; {path =&gt; '/bar/baz'});
+  return;
+%&gt;
+</pre>
+<p>
+  このように記述するとテンプレートの中で、JSONやrender_exceptionを呼び出して例外を描画することができます。
+</p>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

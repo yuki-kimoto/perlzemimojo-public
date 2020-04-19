@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>Mojolicious::LiteからMojoliciousに移行する場合に考えておきたいこと - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="仕事でMojolicious::Liteでプロトタイピングをはじめて、Mojoliciousに移行させたのですけれど、そのときにこんな風にMojolicious::Liteを記述しておいたほうが移行が楽だったなぁということを書いておきます。ほとんとどの手順はMojolicious::Guides::Growingを見れば大丈夫です。移行してみるとやはりメンテナンス性があがりますね。">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <ol class="bread" itemscope itemtype="http://schema.org/BreadcrumbList">
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/">
+      <span itemprop="name">Perl</span>
+    </a>
+    <meta itemprop="position" content="1" />
+  </li>
+  &#8250;
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/blog/20140319139520.html">
+      <span itemprop="name">Mojolicious</span>
+    </a>
+    <meta itemprop="position" content="2" />
+  </li>
+</ol>
+<h2><a href="/blog/20101114127859.html">Mojolicious::LiteからMojoliciousに移行する場合に考えておきたいこと</a></h2>
+<p>
+  仕事でMojolicious::Liteでプロトタイピングをはじめて、Mojoliciousに移行させたのですけれど、そのときにこんな風にMojolicious::Liteを記述しておいたほうが移行が楽だったなぁということを書いておきます。ほとんとどの手順は<a href="http://wiki.livedoor.jp/mojolicious/d/Mojolicious::Guides::Growing">Mojolicious::Guides::Growing</a>を見れば大丈夫です。移行してみるとやはりメンテナンス性があがりますね。
+</p>
+<h4>URLをコントローラとアクションのふたつの組にしておく</h4>
+<p>
+  Mojoliciousへの移行を考えている場合は、次のように定義しておくとよいです。ルート名は自動でも設定されますが、ハイフン区切りにしておくと見やすいでしょう。
+</p>
+<pre>
+# Mojolicious::Lite
+get '/foo/bar' =&gt; sub { ... } =&gt; 'foo-bar';
+
+# Mojolicious
+$r-&gt;get('/foo/bar')-&gt;to('foo#bar')-&gt;name('foo-bar');
+</pre>
+<p>
+  URLにパラメーターを含めるのはもちろんかまいません。アクションとコントローラには影響がありません。
+</p>
+<pre>
+# Mojolicious::Lite
+get '/foo/bar/:id' =&gt; sub { ... } =&gt; 'foo-bar';
+
+# Mojolicious
+$r-&gt;get('/foo/bar/:id')-&gt;to('foo#bar')-&gt;name('foo-bar');
+</pre>
+<p>
+  以下のように3つにしてしまったりするとMojoliciousへの移行が大変になります。
+</p>
+<pre>
+# Mojolicious::Lite
+get '/foo/bar/baz' =&gt; sub { ... } =&gt; 'foo-bar-baz';
+</pre>
+<p>
+  反対にアクション名がない場合はindexというアクションに対応させるとよいでしょう。
+</p>
+<pre>
+# Mojolicious::Lite
+get '/foo' =&gt; sub { ... } =&gt; 'foo';
+
+# Mojolicious
+$r-&gt;get('/foo')-&gt;to('foo#index')-&gt;name('foo');
+</pre>
+<h3>埋め込まれているテンプレートファイルは自動的にファイルに出力できる</h3>
+<p>
+  埋め込まれているテンプレートファイルは自動的にファイルに出力できます。自分で記述する必要はありません。
+</p>
+<pre>
+__DATA__
+
+@@ foo-bar.html.ep
+&lt;html&gt;&lt;body&gt;Hello&lt;/body&gt;&lt;/html&gt;
+</pre>
+<p>
+  inflateコマンドを使用します。
+</p>
+<pre>
+perl myapp.pl inflate
+</pre>
+<p>
+  出力されたファイルは「foo-bar.html.ep」のようにハイフン区切りになっていますので、「foo/bar.html.ep」のようにコントローラー名を持つディレクトリを作ってその中にアクション名のファイルをいれます。
+</p>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

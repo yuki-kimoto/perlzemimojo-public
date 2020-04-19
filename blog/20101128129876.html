@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>Mojoliciousで自由に「URL」を生成するテクニック - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="url_forを使うと、URLを指定することができます。MojoliciousはCGIや組み込みWebサーバーなどの複数の環境で実行することができますがurl_forメソッドでURLを記述すると、どの環境でも実行できるURLを記述することができます。">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <ol class="bread" itemscope itemtype="http://schema.org/BreadcrumbList">
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/">
+      <span itemprop="name">Perl</span>
+    </a>
+    <meta itemprop="position" content="1" />
+  </li>
+  &#8250;
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/blog/20140319139520.html">
+      <span itemprop="name">Mojolicious</span>
+    </a>
+    <meta itemprop="position" content="2" />
+  </li>
+</ol>
+<h2><a href="/blog/20101128129876.html">Mojoliciousで自由に「URL」を生成するテクニック</a></h2>
+<h3>URLを作成するための基本</h3>
+<p>
+  <strong>url_for</strong>を使うと、URLを指定することができます。MojoliciousはCGIや組み込みWebサーバーなどの複数の環境で実行することができますがurl_forメソッドでURLを記述すると、どの環境でも実行できるURLを記述することができます。
+</p>
+<pre>
+url_for('/user/register');
+</pre>
+<p>
+  またルート名を渡すと何ができるかというと、URLに含まれるパラメータを復元できます。す。
+</p>
+<pre>
+get '/foo/bar/:id'; 
+
+url_for('foobarid', id =&gt; 3); 
+</pre>
+<h3>Mojoliciousでクエリ文字列を含むURLを生成する</h3>
+<p>
+  Mojoliciousでクエリ文字列を含むURLを生成するには<strong>query</strong>メソッドを使用します。
+</p>
+<pre>
+&lt;%= url_for('/path')-&gt;query(foo =&gt; 'a', bar =&gt; 'b') %&gt;;
+</pre>
+<h3>リクエストURLを復元する</h3>
+<p>
+  リクエストURLを復元するにはurl_forメソッドの引数に何も指定しないか、<strong>current</strong>を指定します。
+</p>
+<pre>
+% my $url = url_for;
+% my $url = url_for('current');
+</pre>
+<p>
+  「:id」などの記述でキャプチャされたURLも正しく復元されます。
+</p>
+<pre>
+/entry/:id
+</pre>
+<p>
+  ただしクエリ文字列の部分は自動的に復元されないので、復元したい場合は<strong>url_with</strong>を使う必要があります。
+</p>
+<pre>
+% my $url = url_with;
+</pre>
+<pre>
+% $url-&gt;query([name =&gt; 'Ken', age =&gt; '19']);
+</pre>
+<p>
+  このようにすると、検索条件に対して、さらに絞り込んだ検索を簡単に記述することができます。
+</p>
+<p>
+  またqueryメソッドが値を設定する場合は、自身のMojo::URLオブジェクトを返却することを覚えておけば、次のように一行で記述することもできます。
+</p>
+<pre>
+%= url_with-&gt;query([name =&gt; 'Ken', age =&gt; '19']);
+</pre>
+<h3>クエリ文字列の取り扱い</h3>
+<p>
+  クエリ文字列を解析したい場合はMojo::Parametersのparseメソッドを使用します。
+</p>
+<pre>
+$params-&gt;parse('foo=b%3Bar&amp;baz=23');
+</pre>
+<p>
+  一般的な利用方法としてはurl_forメソッドでMojo::URLオブジェクトを生成した後に、Mojo::URLのqueryメソッドでMojo::Parametersオブジェクトを取得してからparseメソッドを使うことが多いでしょう。
+</p>
+<p>
+  次のようにするとURLにクエリ文字列を設定することができます。
+</p>
+<pre>
+# テンプレートの中
+% my $url = url_for('/search');
+% $url-&gt;query-&gt;parse('title=perl&amp;name=ken');
+</pre>
+<h4>クエリ文字列を置き換える</h4>
+<p>
+  クエリ文字列を置き換えるには次のようにリスト形式で渡します。
+</p>
+<pre>
+$url-&gt;query(name =&gt; 'taro', price =&gt; 1900);
+</pre>
+<p>
+  上記の例の場合は以下のように置き換わります。
+</p>
+<pre>
+# 前
+title=perl&amp;name=ken
+
+# 後
+name=taro&amp;price=1900
+</pre>
+<h4>クエリ文字列のマージ</h4>
+<p>
+  クエリ文字列をマージするには配列のリファレンスとして渡します。
+</p>
+<pre>
+$url-&gt;query([name =&gt; 'taro', price =&gt; 1900]);
+</pre>
+<p>
+  次のようにマージされます。値が同じものは置き換えられます。
+</p>
+<pre>
+# 前
+title=perl&amp;name=ken
+
+# 後
+title=perl&amp;name=taro&amp;price=1900
+</pre>
+<h4>クエリ文字列の追加</h4>
+<p>
+  クエリ文字列を追加するにはハッシュのリファレンスとして渡します。
+</p>
+<pre>
+$url-&gt;query({name =&gt; 'taro', price =&gt; 1900});
+</pre>
+<p>
+  次のように追加されます。
+</p>
+<pre>
+# 前
+title=perl&amp;name=ken
+
+# 後
+title=perl&amp;name=ken&amp;name=taro&amp;price=1900
+</pre>
+<h3>リクエストのクエリ文字列を受け継いだURLを生成する - url_with</h3>
+<p>
+  たとえば、検索条件は変更せずにページ番号だけを変更したいと思うときがよくあると思います。クエリ文字列の部分はそのまま使いたいのだけれど、一部の条件は変更したいという場合です。
+</p>
+<p>
+  このような場合は<strong>>url_with</strong>ヘルパーを使います。クエリ文字列を受け継ぐほかはurl_forと使い方は同じです。
+</p>
+<pre>
+%= url_with '/foo'
+</pre>
+<p>
+  次のように記述すると、ページ番号だけ変更できます。
+</p>
+<pre>
+%= url_with-&gt;query([page =&gt; 2])
+</pre>
+<h3>リバースプロキシを利用したときにホスト名、ポート番号、パスが正しく認識されるようにする</h3>
+<p>
+  ApacheなどのWebサーバーをリバースプロキシにして、Mojoliciousアプリケーションにディスパッチするときに、そのままの設定では絶対URLを出力するredirecto_toで正しくURLが出力されません。たとえば以下のような設定を行ったとします。
+</p>
+<pre>
+  &lt;VirtualHost *:80&gt;
+    ServerName perlcodesample.com
+    &lt;Proxy *&gt;
+      Order deny,allow
+      Allow from all
+    &lt;/Proxy&gt;
+    ProxyRequests Off
+    ProxyPreserveHost On
+
+    ProxyPass /gitweblite http://localhost:10010/gitweblite keepalive=On
+    ProxyPassReverse /gitweblite http://localhost:10010/gitweblite
+
+    RequestHeader set X-Forwarded-Proto "https"
+  &lt;/VirtualHost&gt;
+</pre>
+<p>
+  注意点として、最近のLinuxはselinuxが有効になっているのですが、これが有効になっていると「Service Temporarily Unavailable」となって、Apacheからアプリケーションに接続ができません。設定を変えるかselinuxを無効にします。
+</p>
+<pre>
+# /etc/selinux/config
+SELINUX=disabled
+</pre>
+<h4>正しく認識させる方法</h4>
+<p>
+  以下のような記述を追加しましょう。
+</p>
+<pre>
+# アプリケーションクラス
+sub starup {
+  my $self = shift;
+  
+  # Reverse proxy support
+  $ENV{MOJO_REVERSE_PROXY} = 1;
+  $self-&gt;hook('before_dispatch' =&gt; sub {
+    my $self = shift;
+    
+    if ( $self-&gt;req-&gt;headers-&gt;header('X-Forwarded-Host')) {
+      my $prefix = shift @{$self-&gt;req-&gt;url-&gt;path-&gt;parts};
+      push @{$self-&gt;req-&gt;url-&gt;base-&gt;path-&gt;parts}, $prefix;
+    }
+  });
+}
+</pre>
+<h4>MOJO_REVERSE_PROXYの設定</h4>
+<p>
+  環境変数のMOJO_REVERSE_PROXYを1に設定する必要があります。Mojolicious 5.0からは、X-Forwarded-Protoがあれば、自動的に認識されるようになっています。
+</p>
+<pre>
+$ENV{MOJO_REVERSE_PROXY} = 1;
+</pre>
+<p>
+  (これを設定しても、元のアプリには何の影響もでません。)
+</p>
+<h4>フックを使ってリバースプロキシ経由のときのベースパスを書き換える</h4>
+<p>
+  正しくディスパッチするために、/gitwebliteの部分が、ベースパスだということを教えてあげないといけません。
+</p>
+<pre>
+$self-&gt;hook('before_dispatch' =&gt; sub {
+  my $self = shift;
+  
+  if ( $self-&gt;req-&gt;headers-&gt;header('X-Forwarded-Host')) {
+    my $prefix = shift @{$self-&gt;req-&gt;url-&gt;path-&gt;parts};
+    push @{$self-&gt;req-&gt;url-&gt;base-&gt;path-&gt;parts}, $prefix;
+  }
+}
+</pre>
+<p>
+  これでホスト名とポート番号が正しくurl_forやredirect_toで出力されるようになります。この記述を行っても試験環境でスタンドアロンでアプリケーションを実行するときでも、特に悪影響はありません。
+</p>
+<h3>SSLのページでHTTPページへのリンクを作成したい場合</h3>
+<p>
+  httpsでアクセスした場合に、そのページの中にルート相対パス(/app1)でURLを指定した場合は、次のようなURLだと解釈されてしまいます。https://yourhost.com/app1
+</p>
+<p>
+  SSLのページでHTTPのページへのリンクを張りたい場合は次のようにするとよいです。
+</p>
+<pre>
+URL: &lt;a href="&lt;%= url_for('/foo')-&gt;to_abs-&gt;scheme('http') %&gt;"&gt;Foo&lt;/a&gt;
+</pre>
+<p>
+  url_forはMojo::URLオブジェクトを返却するので、絶対URLに変換してから、スキーマをhttpに変換します。
+</p>
+<pre>
+url_for('/foo')-&gt;to_abs-&gt;scheme('http')
+</pre>
+<p>
+  このようにすることでSSLのページから簡単にhttpへのリンクを張ることができます。
+</p>
+<h3>HTTPページでSSLのページへのリンクを作成したい場合</h3>
+<p>
+  HTTPページでSSLのページへのリンクを作成したい場合は次のようにするとよいです。
+</p>
+<pre>
+URL: &lt;a href="&lt;%= url_for('/foo')-&gt;to_abs-&gt;scheme('https') %&gt;"&gt;Foo&lt;/a&gt;
+</pre>
+<p>
+  url_forはMojo::URLオブジェクトを返却するので、絶対URLに変換してから、スキーマをhttpsに変換します。
+</p>
+<pre>
+url_for('/foo')-&gt;to_abs-&gt;scheme('https')
+</pre>
+<p>
+  このようにすることでSSLのページへのリンクを張ることができます。
+</p>
+<h3>url_forメソッドでSSHのURLを生成する</h3>
+<p>
+  url_forメソッドはHTTPのURLだけではなくて、URLの構造を持つものであれば、何でも作ることができます。
+</p>
+<p>
+  では次のようなSSHのURLを作ってみましょう。
+</p>
+<pre>
+ssh://kimoto@somehost.com:20000/foo/bar.git
+</pre>
+<p>
+  次のようにします。
+</p>
+<pre>
+my $url = url_for('/foo/bar.git')-&gt;to_abs-&gt;scheme('ssh')
+  -&gt;userinfo('kimoto')-&gt;host('somehost.com')-&gt;port(20000);
+</pre>
+<p>
+  まずto_absメソッドで絶対URLに変換してから、schemeメソッドでプロトコルを、userinfoメソッドでユーザー名を、hostメソッドでホスト名、portメソッドでポート番号を設定します。
+</p>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

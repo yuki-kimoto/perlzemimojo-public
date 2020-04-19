@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>HTTPメソッドを取得する / Mojolicious - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="HTTPメソッドを取得するにはMojo::Message::Requestクラスのmethodメソッドを使用します。">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <ol class="bread" itemscope itemtype="http://schema.org/BreadcrumbList">
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/">
+      <span itemprop="name">Perl</span>
+    </a>
+    <meta itemprop="position" content="1" />
+  </li>
+  &#8250;
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/blog/20140319139520.html">
+      <span itemprop="name">Mojolicious</span>
+    </a>
+    <meta itemprop="position" content="2" />
+  </li>
+</ol>
+<h2><a href="/blog/20110420130648.html">HTTPメソッドを取得する / Mojolicious</a></h2>
+<p>
+  HTTPメソッドを取得するにはMojo::Message::Requestクラスの<strong>method</strong>メソッドを使用します。
+</p>
+<pre>
+my $method = $req-&gt;method;
+</pre>
+<p>
+  以下はMojolicious::Liteでの例です。Mojo::Message::RequestオブジェクトにはMojolicious::Controllerオブジェクトのreqメソッドを使ってアクセスすることができます。
+</p>
+<pre>
+# Mojolicious::Lite
+get '/' =&gt; sub {
+  my $self = shift;
+  my $method = $self-&gt;req-&gt;method;
+};
+</pre>
+<p>
+  以下はMojoliciousでの例です。
+</p>
+<pre>
+# Mojolicious
+package MyApp::Picture;
+
+use Mojo::Base 'Mojolicious::Controller';
+
+use utf8;
+
+# ログイン画面
+sub list {
+  my $self = shift;
+  my $method = $self-&gt;req-&gt;method;
+}
+</pre>
+<p>
+  HTTPメソッドによって分岐させるときは次のようにlc関数で小文字にしてから判定するとよいでしょう。
+</p>
+<pre>
+if (lc $self-&gt;req-&gt;method eq 'post') {
+  ...
+}
+else {
+  ...
+}
+</pre>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

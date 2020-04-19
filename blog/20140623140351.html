@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>掲示板の作成 | Mojolicious入門 - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="(書きかけ)">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <h2><a href="/blog/20140623140351.html">掲示板の作成 | Mojolicious入門</a></h2>
+<p>
+  (書きかけ)
+</p>
+<p>
+  ここまで急ぎ足で解説してきました。では、今回は実際にWebサイトを作成してみましょう。簡単な掲示板を作成してみます。Webサイトにおいて、ユーザーからのデータを登録、登録したデータを読み出して表示します。
+</p>
+<p>
+  掲示板でも、コメントを登録して、登録されたコメントを読み出します。つまり、掲示板を作成できるようになれば、どんなサイトも作成可能ということですね。
+</p>
+<h3>データベースの作成</h3>
+<p>
+  まず最初にデータベースのテーブルを作成します。テーブルの名前は「message」です。タイトルと書き込み内容を保存するために「title」と「content」という列を作成します。
+</p>
+<pre>
+create table message (
+  id primary key,
+  title not null default '',
+  content not null default ''
+);
+</pre>
+<h3>掲示板のソースコード</h3>
+<p>
+  では早速ソースコードを書いてみます。
+</p>
+<pre>
+use Mojolicious::Lite;
+use DBIx::Connector;
+
+# データベースファイル
+my $db_file = app-&gt;home-&gt;rel_file('bbs.db');
+
+# コネクションマネージャー
+my $conn = DBIx::Connector-&gt;new(
+  # データソース名
+  "dbi:SQLite:dbname=$db_file",
+  # ユーザー名
+  undef,
+  # パスワード
+  undef,
+  # DBIのオプション
+  {
+    RaiseError =&gt; 1,
+    PrintError =&gt; 0,
+    AutoCommit =&gt; 1,
+    sqlite_unicode =&gt; 1
+  }
+);
+
+get '/' =&gt; sub {
+  my $self = shift;
+  
+  # データベースハンドルを取得
+  my $dbh = $conn-&gt;dbh;
+  
+  # メッセージを取得
+my $sth = $dbi-&gt;prepare('select * from message');
+  $sth-&gt;execute;
+  my $messages = [];
+  while (my $row = $sth-&gt;fetchrow_hashref) {
+    push @$messages, $row;
+  }
+
+  # 描画
+  $self-&gt;render('index', messages =&gt; $messages);
+
+};
+
+# Create entry
+post '/' =&gt; sub {
+  my $self = shift;
+  
+  # フォームのデータ
+  my $title   = $self-&gt;param('title');
+  my $message = $self-&gt;param('message');
+  
+  # タイトルが存在しなければエラー
+  my $errors = [];
+  unless (length $title) {
+    push @$errors, 'タイトルを入力してください。';
+  }
+  # メッセージが存在しなければエラー
+  unless (length $message) {
+    push @$errors, 'メッセージを入力してください。;
+  }
+  
+  # エラーが存在すれば登録をせずに戻る
+  if (@$errors) {
+    $self-&gt;render('index', errors =&gt; $errors);
+    return;
+  }
+  
+  # データベースハンドル
+  my $dbh = $conn-&gt;dbh;
+  
+  # データの登録
+  my $sth = $dbh-&gt;prepare('insert into message (title, content) values (?, ?)');  $dbh-&gt;execute($title, $message);
+  
+  # リダイレクト
+  $self-&gt;redirect_to('index');
+};
+
+get '/update' =&gt; sub {
+  ...
+};
+
+post '/update' =&gt; sub {
+  ...
+};
+
+app-&gt;start;
+
+__DATA__
+
+@@ layouts/common.html.ep
+% my $title = stash('title');
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta http-equiv="Content-Type" content="text/html;charset=UTF-8" &gt;
+    &lt;title&gt;&lt;%= $title %&gt;&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    %= content
+  &lt;/body&gt;
+&lt;/html&gt;
+
+@@ index.html.ep
+&lt;%
+  my $messages = stash('messages');
+  my $errors = stash('errors');
+%&gt;
+% layout 'common';
+
+  &lt;h1&gt;掲示板&lt;/h1&gt;
+  &lt;form action="&lt;%= url_for('/') method="post" %&gt;"&gt;
+    &lt;div&gt;
+      タイトル
+      &lt;input type="text" name="title" &gt;
+    &lt;/div&gt;
+    &lt;div&gt;Message&lt;/div&gt;
+    &lt;div&gt;
+      &lt;textarea name="message" cols="50" rows="10" &gt;&lt;/textarea&gt;
+    &lt;/div&gt;
+    &lt;div&gt;
+      &lt;input type="submit" value="Post" &gt;
+    &lt;/div&gt;
+  &lt;/form&gt;
+  &lt;div&gt;
+    % for my $message (@$messages) {
+      &lt;div&gt;
+        &lt;hr&gt;
+        &lt;div&gt;Title: &lt;%= $message-&gt;{title} %&gt;&lt;/div&gt;
+        &lt;div&gt;Message&lt;/div&gt;
+        &lt;div&gt;&lt;%= $message-&gt;{content} %&gt;&lt;/div&gt;
+      &lt;div&gt;
+    % }
+  &lt;/div&gt;
+</pre>
+<p>
+  <a href="/blog/20100123126425.html">while文</a>を使ってデータベースのテーブルの行を、順番に読み込んでいます。
+</p>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

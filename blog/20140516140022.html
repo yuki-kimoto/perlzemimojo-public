@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>MojoliciousのリバースプロキシのSSLの検知方法が変わります - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="MojoliciousのリバースプロキシでのSSLの検知方法が変わります。リバースプロキシを使って、かつSSLで運用している方はバージョンアップに注意です。バージョンを移すときは両方記述して、バージョンアップ後に、古い指定方法を削りましょう。">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <h2><a href="/blog/20140516140022.html">MojoliciousのリバースプロキシのSSLの検知方法が変わります</a></h2>
+<p>
+  MojoliciousのリバースプロキシでのSSLの検知方法が変わります。リバースプロキシを使って、かつSSLで運用している方はバージョンアップに注意です。バージョンを移すときは両方記述して、バージョンアップ後に、古い指定方法を削りましょう。
+</p>
+<pre>
+  &lt;VirtualHost *:443&gt;
+    ServerName localhost
+    &lt;Proxy *&gt;
+      Order deny,allow
+      Allow from all
+    &lt;/Proxy&gt;
+    ProxyRequests Off
+    ProxyPreserveHost On
+    ProxyPass / http://localhost:8080/ keepalive=On
+    ProxyPassReverse / http://localhost:8080/
+
+    # 古い指定方法
+    RequestHeader set X-Forwarded-HTTPS "1"
+
+    # 新しい指定方法
+    RequestHeader set X-Forwarded-Proto "https"
+  &lt;/VirtualHost&gt;
+</pre>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

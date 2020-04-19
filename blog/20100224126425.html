@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>Object::Simple - Mojo::Base互換のアクセサを生成 - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="デフォルト値つきのアクセサを作成するにはObject::Simpleを使用します。Object::SimpleはMojoliciousのMojo::Baseと高いレベルで互換性があります。">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <ol class="bread" itemscope itemtype="http://schema.org/BreadcrumbList">
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/">
+        <span itemprop="name">Perl</span></a>
+    <meta itemprop="position" content="1" />
+  </li>
+  &#8250;
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/blog/20091116124667.html">
+      <span itemprop="name">モジュール</span></a>
+    <meta itemprop="position" content="2" />
+  </li>
+  &#8250;
+  <li>
+    here
+  </li>
+</ol>
+<h2><a href="/blog/20100224126425.html">Object::Simple - Mojo::Base互換のアクセサを生成</a></h2>
+<p>
+  デフォルト値つきのアクセサを作成するには<strong>Object::Simple</strong>を使用します。Object::SimpleはMojoliciousのMojo::Baseと高いレベルで互換性があります。
+</p>
+<pre>
+package Point;
+use Object::Simple -base;
+
+has x =&gt; 1;
+has y =&gt; 1;
+
+package main;
+
+my $point = Point-&gt;new;
+print $point-&gt;x;
+
+1;
+</pre>
+<p>
+  useするときに-baseを指定すると、Object::Simpleを継承することができます。Object::Simpleはnewメソッドを持ちます。またアクセッサを定義するためのhasというメソッドがインポートされます。またstrictとwarningsが自動的に有効になります。
+</p>
+<h3>一般的なクラスのサンプル</h3>
+<p>
+  一般的なクラスのサンプルです。Pointクラスはxとyというアクセッサを持ちます。またclearというxとyを0に初期化するメソッドを持ちます。
+</p>
+<pre>
+package Point;
+use Object::Simple -base;
+
+has x =&gt; 0;
+has y =&gt; 0;
+
+sub clear {
+  my $self = shift;
+    
+  $self-&gt;x(0);
+  $self-&gt;y(0);
+}
+
+1;
+</pre>
+<p>
+  Pointクラスは次のように使用します。コンストラクタnewはObject::Simpleから継承したものです。
+</p>
+<pre>
+my $point = Point-&gt;new(x =&gt; 4, y =&gt; 6);
+
+$point-&gt;x(1);
+$point-&gt;y(2);
+
+my $x = $point-&gt;x;
+my $y = $point-&gt;y;
+
+$point-&gt;clear;
+</pre>
+<h3>Object::Simpleの使い方</h3>
+<p>
+  属性を定義する方法がいくつかあります。
+</p>
+<h4>複数の属性を一度に定義</h4>
+<pre>
+# デフォルト値なし
+has ['x', 'y'];
+
+# デフォルト値あり
+has ['x', 'y'] =&gt; 0;
+</pre>
+<p>
+  配列のリファレンスをhasの第一引数に指定すると複数のアクセッサを一度に定義できます。
+</p>
+<h4>デフォルト値の指定</h4>
+<pre>
+# 定数
+has foo =&gt; 1;
+
+# 配列のリファレンス
+has foo =&gt; sub { [] };
+
+# ハッシュのリファレンス
+has bar =&gt; sub { {} };
+
+# オブジェクト
+has baz =&gt; sub { LWP::UserAgent-&gt;new };
+</pre>
+<p>
+  配列のリファレンス、ハッシュのリファレンス、オブジェクトなどをデフォルト値に設定するときはsub { }で囲んで遅延評価する必要があります。
+</p>
+<h4>すべてのアクセサを一度に定義</h4>
+<pre>
+has [qw/foo bar baz/],
+    some =&gt; 1,
+    other =&gt; sub { 5 };
+</pre>
+<p>
+  すべてのアクセサの定義を一度に行うこともできます。
+</p>
+<h3>継承のサンプル</h3>
+<p>
+  Pointクラスを継承したPoint3Dクラスを作成するサンプルです。
+</p>
+<pre>
+package Point3D;
+use Point -base;
+
+has z =&gt; 0;
+
+sub clear {
+  my $self = shift;
+  $self-&gt;SUPER::clear();
+  $self-&gt;z(0);
+}
+
+1;
+</pre>
+<h3>コンストラクタのオーバーライド</h3>
+<p>
+  コンストラクタnew()をオブジェクトの初期化や引数の加工のためにオーバーライドすることができます。
+</p>
+<pre>
+# オブジェクトの初期化のためのnew()のオーバーライド
+sub new {
+  my $self = shift-&gt;SUPER::new(@_);
+  
+  # Initialization
+  
+  return $self;
+}
+</pre>
+<pre>
+# 引数の加工のためのnew()のオーバーライド
+sub new {
+  my $self = shift;
+  
+  $self-&gt;SUPER::new(x =&gt; $_[0], y =&gt; $_[1]);
+  
+  return $self;
+}
+</pre>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

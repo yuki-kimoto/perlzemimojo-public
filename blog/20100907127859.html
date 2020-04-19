@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>Mojoliciousの便利なAPI - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="リクエストオブジェクトはコントローラオブジェクトを通して取得することができます。">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <ol class="bread" itemscope itemtype="http://schema.org/BreadcrumbList">
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/">
+      <span itemprop="name">Perl</span>
+    </a>
+    <meta itemprop="position" content="1" />
+  </li>
+  &#8250;
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/blog/20140319139520.html">
+      <span itemprop="name">Mojolicious</span>
+    </a>
+    <meta itemprop="position" content="2" />
+  </li>
+</ol>
+<h2><a href="/blog/20100907127859.html">Mojoliciousの便利なAPI</a></h2>
+<h3>リクエストオブジェクト</h3>
+<p>
+  リクエストオブジェクトはコントローラオブジェクトを通して取得することができます。
+</p>
+<pre>
+get '/' =&gt; sub {
+  my $self = shift;
+  my $req = $self-&gt;req;
+};
+</pre>
+<p>
+  リクエストオブジェクトは<a href="http://search.cpan.org/dist/Mojolicious/lib/Mojo/Message/Request.pm">Mojo::Message::Request</a>です。<a href="http://search.cpan.org/dist/Mojolicious/lib/Mojo/Message/Request.pm">Mojo::Message::Request</a>は<a href="http://search.cpan.org/dist/Mojolicious/lib/Mojo/Message.pm">Mojo::Message</a>を継承しています。
+</p>
+<p>
+  リクエストオブジェクトの便利なAPIを紹介します。
+</p>
+<h4>params</h4>
+<p>
+  paramsメソッドを使用すると、GETとPOSTで渡されたパラメータを保持するパラメータオブジェクトにアクセスすることができます。
+</p>
+<pre>
+my $params = $req-&gt;params;
+</pre>
+<h4>query_params</h4>
+<p>
+  query_paramsメソッドを使用すると、GETで渡されたパラメータを保持するパラメータオブジェクトにアクセスすることができます。
+</p>
+<pre>
+my $params = $req-&gt;query_params;
+</pre>
+<h4>json</h4>
+<p>
+  jsonメソッドを使うと、JSON形式で送信されたデータをPerlのデータ構造として取得できます。
+</p>
+<pre>
+my $data = $req-&gt;json;
+</pre>
+<h4>is_secure</h4>
+<pre>
+my $secure = $req-&gt;is_secure;
+</pre>
+<p>
+  コネクションがセキュアかどうかを調べます。つまり「https://」で接続されているかどうかを調べます。
+</p>
+<h4>is_xhr</h4>
+<pre>
+$xhr = $req-&gt;is_xhr;
+</pre>
+<p>
+  「Check X-Requested-With」ヘッダに「XMLHttpRequest」と文字列が含まれているかどうかを調べます。つまりAJAXで通信されているかどうかを調べます。
+</p>
+<h3>パラメータオブジェクト</h3>
+<p>
+  パラメータオブジェクトはGETやPOSTで渡されたパラメータを保持するオブジェクトです。これは<a href="http://search.cpan.org/dist/Mojolicious/lib/Mojo/Parameters.pm">Mojo::Parameters</a>オブジェクトです。
+</p>
+<p>
+  パラメータオブジェクトの便利なAPIを紹介します。
+</p>
+<h4>to_hash</h4>
+<p>
+  to_hashメソッドを使うとパラメータをハッシュのリファレンスに変換することができます。
+</p>
+<pre>
+my $hash = $params-&gt;to_hash;
+</pre>
+<p>
+  これはコントローラオブジェクトから次のように利用されることが多いと思います
+</p>
+<pre>
+get '/' =&gt; sub {
+  my $self = shift;
+  my $data = $self-&gt;req-&gt;params-&gt;to_hash;
+}
+</pre>
+<h3>アプリケーションオブジェクト</h3>
+<p>
+  アプリケーションオブジェクトはapp関数を使って取得することができます。
+</p>
+<pre>
+my $app = app;
+</pre>
+<p>
+  アプリケーションオブジェクトは<a href="http://search.cpan.org/dist/Mojolicious/lib/Mojolicious.pm">Mojolicious</a>オブジェクトです。<a href="http://search.cpan.org/dist/Mojolicious/lib/Mojolicious.pm">Mojolicious</a>は<a href="http://search.cpan.org/dist/Mojolicious/lib/Mojo.pm">Mojo</a>を継承しています。
+</p>
+<p>
+  アプリケーションオブジェクトの便利なAPIを紹介します。
+</p>
+<h4>home</h4>
+<p>
+  ホームオブジェクトを取得するにはhomeメソッドを使用します。
+</p>
+<pre>
+my $home = $app-&gt;home;
+</pre>
+<p>
+  ホームオブジェクトは<a href="http://search.cpan.org/dist/Mojolicious/lib/Mojo/Home.pm">Mojo::Home</a>オブジェクトで、アプリケーションのホームディレクトリの情報を持ちます。
+</p>
+<h4>log</h4>
+<p>
+  ログオブジェクトを取得するにはlogメソッドを使用します。
+</p>
+<pre>
+my $log = $app-&gt;log;
+</pre>
+<p>
+  ログオブジェクトは<a href="http://search.cpan.org/dist/Mojolicious/lib/Mojo/Log.pm">Mojo::Log</a>オブジェクトです。
+</p>
+<h4>secrets</h4>
+<p>
+  クッキーを暗号化するためのパスワードを設定するにはsecretsメソッドを使用します。
+</p>
+<pre>
+$app-&gt;secrets(['lkjiji!&amp;F']);
+</pre>
+<p>
+  クッキーを使用してセッション管理する場合は必ず設定しましょう。
+</p>
+<h4>start</h4>
+<p>
+  アプリケーションをスタートさせるにはstartメソッドを使用します。
+</p>
+<pre>
+$app-&gt;start;
+</pre>
+<h4>types</h4>
+<p>
+  タイプオブジェクトを取得するにはtypesメソッドを使用します。
+</p>
+<pre>
+my $types = $app-&gt;types;
+</pre>
+<p>
+  タイプオブジェクトは<a href="http://search.cpan.org/dist/Mojolicious/lib/MojoX/Types.pm">MojoX::Types</a>オブジェクトです。これはファイルの拡張子とコンテントタイプのマッピングを定義しているオブジェクトです。
+</p>
+<h4>defaults</h4>
+<p>
+  スタッシュのデフォルト値を設定しておくにはdefaultsメソッドを使用します。
+</p>
+<pre>
+# Set
+$app-&gt;defaults({foo =&gt; 'bar'});
+$app-&gt;defaults-&gt;{foo} = 'bar';
+
+# Get
+my $foo = $app-&gt;defaults-&gt;{foo};
+</pre>
+<h4>helper</h4>
+<p>
+  ヘルパーメソッドを追加するにはhelperメソッドを使用します。
+</p>
+<pre>
+$app-&gt;helper(
+  foo =&gt; sub { ... },
+  bar =&gt; sub { ... }
+);
+</pre>
+<p>
+  helperメソッドで追加したヘルパーメソッドは、アプリケーションオブジェクト、コントローラオブジェクト、テンプレートの内部で利用することができます。
+</p>
+<pre>
+$app-&gt;foo;
+</pre>
+<pre>
+$c-&gt;foo;
+</pre>
+<pre>
+@@ index.html.ep
+% foo;
+</pre>
+<h4>mode</h4>
+<p>
+  アプリケーションのモードを取得・設定するにはmodeメソッドを使用します。
+</p>
+<pre>
+my $mode = $app-&gt;mode;
+$app-&gt;mode('production');
+</pre>
+<p>
+  これは環境変数を使って行うこともできます。
+</p>
+<pre>
+export MOJO_MODE=production
+</pre>
+<h3>Mojolicious::Liteでインポートされる関数</h3>
+<p>
+  Mojolicious::Liteを読み込んだときにインポートされる関数です。(Mojolicious::Liteの詳細については<a href="http://wiki.livedoor.jp/mojolicious/d/Mojolicious::Lite">Mojolicious::Liteのドキュメント</a>を参考にしてください。)
+</p>
+<h4>app</h4>
+<p>
+  アプケーションオブジェクトを取得するにはapp関数を定義します。
+</p>
+<pre>
+my $app = app;
+</pre>
+<h4>get</h4>
+<p>
+  HTTPのGETメソッドでアクセスされるURLに対する処理を定義するにはget関数を使用します。。
+</p>
+<pre>
+get '/:foo' =&gt; sub {...};
+</pre>
+<h4>post</h4>
+<p>
+  HTTPのPOSTメソッドでアクセスされるURLに対する処理を定義するにはpost関数を使用します。
+</p>
+<pre>
+post '/:foo' =&gt; sub {...};
+</pre>
+<h4>any</h4>
+<p>
+  HTTPの任意のメソッドでアクセスされるURLに対する処理を定義するにはany関数を使用します。。また複数のHTTPメソッドを指定することも可能です。
+</p>
+<pre>
+any '/:foo' =&gt; sub {...};
+any [qw/get post head put delete/] =&gt; '/:foo' =&gt; sub {...};
+</pre>
+<h4>under</h4>
+<p>
+  getやpostメソッドで定義した処理を実行する前に実行したい処理を定義するにはunder関数を使用します。これは認証などに利用することができます。
+</p>
+<pre>
+under sub {...};
+</pre>
+<h4>websocket</h4>
+<p>
+  WebSocketハンドシェイク(Webソケットへの接続)でアクセスされるURLに対する処理を定義するにはwebsocket関数を使用します。
+</p>
+<pre>
+websocket '/:foo' =&gt; sub {...};
+</pre>
+<h4>plugin</h4>
+<p>
+  プラグインを追加するにはplugin関数を使用します。
+</p>
+<pre>
+plugin 'JsonConfig';
+</pre>
+<p>
+  デフォルトの名前空間はMojolicious::Pluginでこの配下にあるモジュール名を指定してプラグインを読み込むことができます。
+</p>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

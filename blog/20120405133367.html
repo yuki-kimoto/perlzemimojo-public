@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>Mojoliciousをサブディレクトリで運用する - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="本番環境で複数のアプリケーションをデプロイするときには、サブドメイン運用ができるのであれば、リバースプロキシ + サブドメインでのデプロイをお勧めします。難しいことを考えないでも、サブドメインごとにバーチャルホストを設定してあげれば、アプリケーションの変更がいらないからです。">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <ol class="bread" itemscope itemtype="http://schema.org/BreadcrumbList">
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/">
+      <span itemprop="name">Perl</span>
+    </a>
+    <meta itemprop="position" content="1" />
+  </li>
+  &#8250;
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/blog/20140319139520.html">
+      <span itemprop="name">Mojolicious</span>
+    </a>
+    <meta itemprop="position" content="2" />
+  </li>
+</ol>
+<h2><a href="/blog/20120405133367.html">Mojoliciousをサブディレクトリで運用する</a></h2>
+<p>
+  本番環境で複数のアプリケーションをデプロイするときには、サブドメイン運用ができるのであれば、リバースプロキシ + サブドメインでのデプロイをお勧めします。難しいことを考えないでも、サブドメインごとにバーチャルホストを設定してあげれば、アプリケーションの変更がいらないからです。
+</p>
+<p>
+  でもMojoliciousを使えばサブディレクトリで運用することも可能です。リバースプロキシ + サブディレクトリで運用する方法を紹介します。httpサーバーはApacheとします。
+</p>
+<p>
+  まずApacheの設定ファイルです。
+</p>
+<pre>
+  &lt;VirtualHost *:80&gt;
+    ServerName perlcodesample.com
+    &lt;Proxy *&gt;
+      Order deny,allow
+      Allow from all
+    &lt;/Proxy&gt;
+    ProxyRequests Off
+    ProxyPreserveHost On
+
+    ProxyPass /app1 http://localhost:3000/app1 keepalive=On
+    ProxyPassReverse /app1 http://localhost:3000/app1
+
+    ProxyPass /app2 http://localhost:3001/app2 keepalive=On
+    ProxyPassReverse /app2 http://localhost:3001/app2
+
+    RequestHeader set X-ProxyPassReverse-UsePrefix "On"
+    RequestHeader set X-Forwarded-HTTPS "0"
+  &lt;/VirtualHost&gt;
+</pre>
+<p>
+  サブディレクトリごとにリバースプロキシの設定をしています。X-ProxyPassReverse-UsePrefixはアプリケーション独自のHTTPヘッダになります。
+</p>
+<p>
+  以下はアプリケーションです。before_dispatchを使って、URLの書き換えを行っています。これはMojoliciousのルーターやurl_forなどのメソッドが正しいURLを認識するために必要です。
+</p>
+<pre>
+use Mojolicious::Lite;
+
+app-&gt;hook(before_dispatch =&gt; sub {
+  my $self = shift;
+  
+  my $use_prefix
+    = $self-&gt;req-&gt;headers-&gt;header('X-ProxyPassReverse-UsePrefix');
+  
+  if (defined $use_prefix &amp;&amp; lc $use_prefix eq 'on') {
+    my $prefix = shift @{$self-&gt;req-&gt;url-&gt;path-&gt;parts};
+    $self-&gt;req-&gt;url-&gt;base-&gt;path-&gt;parse("/$prefix");
+  }
+});
+
+get '/' =&gt; 'index';
+
+get '/foo' =&gt; 'foo';
+
+app-&gt;start;
+
+__DATA__
+
+@@ index.html.ep
+
+URL: &lt;a href="&lt;%= url_for '/foo' %&gt;"&gt;Foo&lt;/a&gt;
+
+@@ foo.html.ep
+
+Foo
+</pre>
+<p>
+  このようにアプリケーションを記述しておけば、サブディレクトリでの運用が可能になります。
+</p>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

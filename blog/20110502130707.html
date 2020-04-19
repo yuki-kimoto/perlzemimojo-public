@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>HTTPヘッダを取得する / Mojolicious - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="HTTPヘッダを取得するにはMojo::Headersクラスのheaderメソッドを使用します。">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <ol class="bread" itemscope itemtype="http://schema.org/BreadcrumbList">
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/">
+      <span itemprop="name">Perl</span>
+    </a>
+    <meta itemprop="position" content="1" />
+  </li>
+  &#8250;
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/blog/20140319139520.html">
+      <span itemprop="name">Mojolicious</span>
+    </a>
+    <meta itemprop="position" content="2" />
+  </li>
+</ol>
+<h2><a href="/blog/20110502130707.html">HTTPヘッダを取得する / Mojolicious</a></h2>
+<p>
+  HTTPヘッダを取得するにはMojo::Headersクラスの<strong>header</strong>メソッドを使用します。
+</p>
+<pre>
+my $x_forwarded_host = $headers-&gt;header('X-Forwarded-Host');
+</pre>
+<p>
+  またMojo::Headersクラスには一般的なヘッダを取得するためのショートカットメソッドがたくさん用意されています。
+</p>
+<pre>
+my $content_type = $headers-&gt;content_type;
+my $accept_language = $headers-&gt;accept_language;
+</pre>
+<ul>
+  <li>
+    <a href="https://mojodoc.perlzemi.com/Mojo%3A%3AHeaders">HTTPヘッダのショートカットメソッド</a>
+  </li>
+</ul>
+<p>
+  以下はMojolicious::Liteのサンプルです。Mojo::Message::RequestオブジェクトをMojolicious::Controllerオブジェクトのreqメソッドによって取得し、Mojo::HeadersオブジェクトをMojo::Message::Requestオブジェクトのheadersメソッドによって取得しています。
+</p>
+<pre>
+# Mojolicious::Lite
+use Mojolicious::Lite;
+
+get '/' =&gt; sub {
+  my $self = shift;
+  my $x_forwarded_host = $self-&gt;req-&gt;headers-&gt;header('X-Forwarded-Host');
+  my $content_type = $self-&gt;req-&gt;headers-&gt;content_type;
+  my $accept_language = $self-&gt;req-&gt;headers-&gt;accept_language;
+};
+</pre>
+<p>
+  以下はMojoliciousのサンプルです。
+</p>
+<pre>
+package MyApp::Diary;
+
+use Mojo::Base 'Mojolicious::Controller';
+
+sub entry {
+  my $self = shift;
+  my $x_forwarded_host = $self-&gt;req-&gt;headers-&gt;header('X-Forwarded-Host');
+  my $content_type = $self-&gt;req-&gt;headers-&gt;content_type;
+  my $accept_language = $self-&gt;req-&gt;headers-&gt;accept_language;
+}
+</pre>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

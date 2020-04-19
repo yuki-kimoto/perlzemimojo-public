@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>アプリケーションを実行する - hypnotoad / Mojolicious - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="hypnotoadコマンドはMojoliciousに組み込みのプリフォークサーバーであるMojo::Server::Hypnotoadを使ってアプリケーションを実行するコマンドです。hypnotoadは本番環境でアプリケーションをデプロイするために用意されています。">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <ol class="bread" itemscope itemtype="http://schema.org/BreadcrumbList">
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/">
+      <span itemprop="name">Perl</span>
+    </a>
+    <meta itemprop="position" content="1" />
+  </li>
+  &#8250;
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/blog/20140319139520.html">
+      <span itemprop="name">Mojolicious</span>
+    </a>
+    <meta itemprop="position" content="2" />
+  </li>
+</ol>
+<h2><a href="/blog/20110122130016.html">アプリケーションを実行する - hypnotoad / Mojolicious</a></h2>
+<p>
+  <strong>hypnotoad</strong>コマンドはMojoliciousに組み込みのプリフォークサーバーであるMojo::Server::Hypnotoadを使って<strong>アプリケーションを実行</strong>するコマンドです。hypnotoadは本番環境でアプリケーションをデプロイするために用意されています。
+</p>
+<h3>アプリケーションの起動</h3>
+<pre>
+hypnotoad myapp.pl
+</pre>
+<p>
+  アプリケーションの設定を記述したい場合は「hypnotoad.conf」というファイルを記述します。
+</p>
+<pre>
+hypnotoad.conf
+</pre>
+<h3>アプリケーションの停止</h3>
+<p>
+  アプリケーションを停止するには、<strong>stop</strong>オプションを利用します。
+</p>
+<pre>
+hypnotoad myapp.pl --stop
+</pre>
+<h3>ホットデプロイメント</h3>
+<p>
+  ホットデプロイメントとは、アプリケーションを停止せずにソフトウェアを置き換えることのできる技術のことです。アプリケーションを実行中に、サイドhypnotoadコマンドを実行するとホットデプロイメントを行うことができます。
+</p>
+<pre>
+hypnotoad myapp.pl
+</pre>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

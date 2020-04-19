@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>簡易検索アプリケーション(Mojolicious::Liteバージョン) - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="簡易な検索アプリケーションです。これはかんたんプログラミング CGI/Perlの第5章の3節の「簡易検索アプリケーション」をMojolicious::Liteを使って書き直したものになっています。">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <ol class="bread" itemscope itemtype="http://schema.org/BreadcrumbList">
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/">
+      <span itemprop="name">Perl</span>
+    </a>
+    <meta itemprop="position" content="1" />
+  </li>
+  &#8250;
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/blog/20140319139520.html">
+      <span itemprop="name">Mojolicious</span>
+    </a>
+    <meta itemprop="position" content="2" />
+  </li>
+</ol>
+<h2><a href="/blog/20100115126494.html">簡易検索アプリケーション(Mojolicious::Liteバージョン)</a></h2>
+<p>
+  簡易な検索アプリケーションです。これは<a href="/blog/20120414133435.html">かんたんプログラミング CGI/Perl</a>の第5章の3節の「簡易検索アプリケーション」をMojolicious::Liteを使って書き直したものになっています。
+</p>
+<h3>簡易検索アプリケーション</h3>
+<p>
+  簡易検索アプリケーションです。
+</p>
+<h4>検索ページ</h4>
+<p>
+  [f:id:yukikimoto:20100219230809p:image]
+</p>
+<h4>検索結果ページ</h4>
+<p>
+  [f:id:yukikimoto:20100219230811p:image]
+</p>
+<h4>登録ページ</h4>
+<p>
+  [f:id:yukikimoto:20100219231044p:image]　
+</p>
+<h3>ソースコード</h3>
+<p>
+  検索アプリケーションのソースコードです。
+</p>
+<pre>
+use Mojolicious::Lite;
+use utf8;
+use Scalar::Util 'looks_like_number';
+use Encode qw/encode decode/;
+use File::Path 'mkpath';
+use File::Basename 'dirname';
+
+
+# Data file(absolute path)
+my $data_file = app-&gt;home-&gt;rel_file('search-person/data.txt');
+
+unless (-f $data_file) {
+  
+  # Create data directory
+  my $data_dir = dirname($data_file);
+  unless (-d $data_dir) {
+    mkpath($data_dir)
+      or die "Cannot create directory '$data_dir'";
+  }
+  
+  # Create file
+  open my $fh, '&gt;', $data_file
+    or die "Cannot create file '$data_file': $!";
+  close $fh;
+}
+
+# Search page(This is top page)
+get '/' =&gt; sub {
+  shift-&gt;render(title =&gt; 'Search page');
+} =&gt; 'index';
+
+# Data registering page
+get '/register' =&gt; sub {
+  shift-&gt;render(title =&gt; 'Resist page');
+} =&gt; 'register';
+
+# Search result
+get '/search-result' =&gt; sub {
+  my $self = shift;
+  
+  my $height_min = $self-&gt;param('height-min');
+  my $height_max = $self-&gt;param('height-max');
+  
+  # Parameter error
+  my $error =
+      !looks_like_number($height_min) ? 'Height min must be a number'
+    : !looks_like_number($height_max) ? 'Height max must be a number'
+    : undef;
+  
+  # Render error page
+  return $self-&gt;render(
+    template =&gt; 'error',
+    title =&gt; 'Error page',
+    message =&gt; $error
+  ) if $error;
+  
+  # Open
+  open my $fh, '&lt;', $data_file
+    or die "Cannot open file '$data_file': $!";
+  
+  # Search
+  my $persons = [];
+  while (my $line = &lt;$fh&gt;) {
+    # Decode
+    $line = decode('UTF-8', $line);
+    
+    # Remove line break
+    chomp $line;
+    
+    # Split line
+    my @record = split("\t", $line);
+    
+    # Person
+    my $person = {};
+    $person-&gt;{name}   = $record[0];
+    $person-&gt;{height} = $record[1];
+    
+    # Match
+    if ($person-&gt;{height} &gt;= $height_min &amp;&amp;
+        $person-&gt;{height} &lt;= $height_max)
+    {
+      push @$persons, $person;
+    }
+  }
+  
+  $self-&gt;render(title =&gt; 'Search result', persons =&gt; $persons);
+  
+} =&gt; 'search-result';
+
+# Post data
+post '/post' =&gt; sub {
+  my $self = shift;
+  
+  # Parameter
+  my $name   = $self-&gt;param('name');
+  my $height = $self-&gt;param('height');
+  
+  # Parameter error
+  my $error = !$name
+    ? 'You must be specify name'
+    
+    : ! looks_like_number($height)
+    ? 'Height must be a number'
+    
+    : undef;
+  
+  # Render error page
+  return $self-&gt;render(template =&gt; 'error', title =&gt; 'Error page',
+                message =&gt; $error)
+    if $error;
+  
+  # Open
+  open my $fh, '&gt;&gt;', $data_file
+    or die "Cannot open file '$data_file': $!";
+  
+  # Line
+  my $line = join "\t", $name, $height;
+  
+  # Print
+  print $fh encode('UTF-8', $line) . "\n";
+  
+  close $fh;
+  
+  # Redirect
+  $self-&gt;redirect_to('register');
+  
+} =&gt; 'post';
+
+app-&gt;start;
+
+__DATA__
+
+@@ layouts/default.html.ep
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta http-equiv="Content-Type" content="text/html;charset=UTF-8" &gt;
+    &lt;title&gt;Simple Search - &lt;%= $title %&gt;&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;%= content %&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+
+@@ index.html.ep
+% layout 'default';
+  &lt;h1&gt;Simple Search - &lt;%= $title %&gt;&lt;/h1&gt;
+  &lt;form method="get" action="&lt;%= url_for('search-result') %&gt;"&gt;
+    &lt;div&gt;
+    Search person informations.
+    &lt;/div&gt;
+    &lt;div&gt;
+      Height
+      &lt;input type="text" name="height-min"&gt; -
+      &lt;input type="text" name="height-max"&gt;
+    &lt;/div&gt;
+    &lt;div&gt;
+      &lt;input type="submit" value="Search" &gt;
+    &lt;/div&gt;
+  &lt;/form&gt;
+  &lt;div&gt;
+    &lt;a href="&lt;%= url_for('register') %&gt;"&gt;Go to register page.&lt;/a&gt;
+  &lt;/div&gt;
+
+@@ register.html.ep
+% layout 'default';
+  &lt;h1&gt;Simple Search - &lt;%= $title %&gt;&lt;/h1&gt;
+  &lt;form method="post" action="&lt;%= url_for('post') %&gt;"&gt;
+    &lt;div&gt;
+    Resist person information.
+    &lt;/div&gt;
+    &lt;div&gt;
+      Name
+      &lt;input type="text" name="name" &gt;
+    &lt;/div&gt;
+    &lt;div&gt;
+      Height
+      &lt;input type="text" name="height"&gt;
+    &lt;/div&gt;
+    &lt;div&gt;
+      &lt;input type="submit" value="Resister" &gt;
+    &lt;/div&gt;
+  &lt;/form&gt;
+  &lt;div&gt;
+    &lt;a href="&lt;%= url_for('index') %&gt;"&gt;Go to search page&lt;/a&gt;
+  &lt;/div&gt;
+
+@@ error.html.ep
+% layout 'default';
+  &lt;h1&gt;Simple Search - &lt;%= $title %&gt;&lt;/h1&gt;
+  &lt;%= $message %&gt;
+
+@@ search-result.html.ep
+% layout 'default';
+  &lt;h1&gt;Simple Search - &lt;%= $title %&gt;&lt;/h1&gt;
+  &lt;div&gt;
+    &lt;a href="&lt;%= url_for('index') %&gt;"&gt;Go to Searching page&lt;/a&gt;
+    &lt;a href="&lt;%= url_for('register') %&gt;"&gt;Go to Resisting page&lt;/a&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    % for my $person (@$persons) {
+      &lt;div&gt;
+        &lt;hr&gt;
+        &lt;div&gt;Name: &lt;%= $person-&gt;{name} %&gt;&lt;/div&gt;
+        &lt;div&gt;Height: &lt;%= $person-&gt;{height} %&gt;&lt;/div&gt;
+      &lt;div&gt;
+    % }
+  &lt;/div&gt;
+</pre>
+<p>
+  <a href="/blog/20100123126425.html">while文</a>を使ってファイルから行を取り出しています。
+</p>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>リアルタイム時計 / Mojoliciousサンプル - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="Mojolicious::Liteで作ったリアルタイム時計です。WebSocketを利用しています。ネイティブでWebSocketをサポートしているChromeで実行することができます。">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <ol class="bread" itemscope itemtype="http://schema.org/BreadcrumbList">
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/">
+      <span itemprop="name">Perl</span>
+    </a>
+    <meta itemprop="position" content="1" />
+  </li>
+  &#8250;
+  <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+    <a itemprop="item" href="/blog/20140319139520.html">
+      <span itemprop="name">Mojolicious</span>
+    </a>
+    <meta itemprop="position" content="2" />
+  </li>
+</ol>
+<h2><a href="/blog/20100331127089.html">リアルタイム時計 / Mojoliciousサンプル</a></h2>
+<p>
+  Mojolicious::Liteで作ったリアルタイム時計です。WebSocketを利用しています。ネイティブでWebSocketをサポートしているChromeで実行することができます。
+</p>
+<h3>リアルタイム時計</h3>
+<p>
+  リアルタイム時計です。
+</p>
+<p>
+  [f:id:perlcodesample:20100415220535p:image]
+</p>
+<h3>ソースコード</h3>
+<p>
+  リアルタイム時計のソースコードです。
+</p>
+<pre>
+use Mojolicious::Lite;
+use Mojo::IOLoop;
+
+my $clients = {};
+my $loop = Mojo::IOLoop-&gt;singleton;
+
+websocket '/' =&gt; sub {
+  my $self = shift;
+
+  # Client id
+  my $cid = "$self";
+  
+  # Controller
+  my $controller = $self;
+  
+  # Send date and time
+  my $datetime = localtime;
+  $self-&gt;send($datetime);
+  
+  # Receive message;
+  $self-&gt;on('message' =&gt; sub {
+    my ($self, $message) = @_;
+    
+    # Start clock
+    if ($message eq 'Start') {
+      
+      # Shortcut
+      return if $clients-&gt;{$cid}{running};
+      
+      # Start
+      $clients-&gt;{$cid}{running} = 1;
+      
+      # Subroutine for sending date and time
+      my $send_datetime;
+      $send_datetime = sub {
+
+        # Send date and time
+        my $datetime = localtime;
+        $controller-&gt;send($datetime);
+        
+        # Timer
+        $loop-&gt;timer(1, $send_datetime) if $clients-&gt;{$cid}{running};
+      };
+      
+      # Send
+      $send_datetime-&gt;();
+    }
+    
+    # Stop clock
+    else { $clients-&gt;{$cid}{running} = 0 }
+  });
+  
+  # on_finish
+  $self-&gt;on('finish' =&gt; sub {
+    # Remove client
+    delete $clients-&gt;{$cid};
+  });
+};
+
+get '/' =&gt; 'index';
+
+app-&gt;start;
+
+__DATA__
+
+@@ index.html.ep
+% my $url = $self-&gt;req-&gt;url-&gt;to_abs-&gt;scheme( $self-&gt;req-&gt;is_secure ? 'wss' : 'ws' )-&gt;path( '/' );
+&lt;!doctype html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;Mojo Websocket Demo&lt;/title&gt;
+
+  &lt;script type="text/javascript"&gt;
+    // only load the flash fallback when needed
+    if ( !( 'WebSocket' in window ) ) {
+      document.write([
+        '&lt;scr'+'ipt type="text/javascript" src="web-socket-js/swfobject.js"&gt;&lt;/scr'+'ipt&gt;',
+        '&lt;scr'+'ipt type="text/javascript" src="web-socket-js/FABridge.js"&gt;&lt;/scr'+'ipt&gt;',
+        '&lt;scr'+'ipt type="text/javascript" src="web-socket-js/web_socket.js"&gt;&lt;/scr'+'ipt&gt;'
+      ].join(''));
+    }
+  &lt;/script&gt;
+  &lt;script type="text/javascript"&gt;
+    if (WebSocket.__initialize) {
+        // Set URL of your WebSocketMain.swf here:
+        WebSocket.__swfLocation = 'web-socket-js/WebSocketMain.swf';
+    }
+
+    // example copied from web-socket-js/sample.html
+    var ws, input, clock;
+
+    function init() {
+      
+      // Connect to Web Socket.
+      ws = new WebSocket('&lt;%= $url %&gt;');
+      
+      // Receive message
+      ws.onmessage = function(e) {
+        // Update clock
+        clock = document.getElementById('clock');
+        clock.innerHTML = e.data;
+      };
+    }
+
+    function onClockStart() {
+      // Start clock
+      ws.send('Start');
+    }
+
+    function onClockStop() {
+      // Stop clock
+      ws.send('Stop');
+    }
+    
+    window.onload = init;
+  &lt;/script&gt;
+&lt;/head&gt;
+  &lt;span id="clock"&gt;&lt;/span&gt;
+  &lt;button onclick="onClockStart(); return false;"&gt;Start&lt;/button&gt;
+  &lt;button onclick="onClockStop(); return false;"&gt;Stop&lt;/button&gt;
+&lt;/html&gt;
+</pre>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>
