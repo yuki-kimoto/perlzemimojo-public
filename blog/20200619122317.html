@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/giblog-logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>mojo generate app - Mojoliciousのひな型を作成する - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="mojo generate appコマンドを使って、Mojoliciousのひな型を作成することができます。">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    <!-- top -->
+
+  </div>
+  <div class="middle">
+    <h2><a href="/blog/20200619122317.html">mojo generate app - Mojoliciousのひな型を作成する</a></h2>
+<p>
+  <b>mojo generate app</b>コマンドを使って、Mojoliciousのひな型を作成することができます。
+</p>
+<pre>
+mojo generate app アプリケーション名
+</pre>
+<p>
+  Myappというアプリケーションを作成するサンプルです。Perlのモジュール名は、先頭が大文字であることが推奨、慣習なので、アプリケーション名は、すべて最初は大文字、それ以降は、小文字にするのをお勧めします。
+</p>
+<pre>
+mojo generate app Myapp
+</pre>
+<p>
+  以下のように出力され「myapp」ディレクトリが作成されています。アプリケーション名や、ディレクトリは小文字に、モジュール名は、アプリケーション名と同じとなります。
+</p>
+<pre>
+  [mkdir] /home/kimoto/labo/tmp/myapp/script
+  [write] /home/kimoto/labo/tmp/myapp/script/myapp
+  [chmod] /home/kimoto/labo/tmp/myapp/script/myapp 744
+  [mkdir] /home/kimoto/labo/tmp/myapp/lib
+  [write] /home/kimoto/labo/tmp/myapp/lib/Myapp.pm
+  [exist] /home/kimoto/labo/tmp/myapp
+  [write] /home/kimoto/labo/tmp/myapp/myapp.conf
+  [mkdir] /home/kimoto/labo/tmp/myapp/lib/Myapp/Controller
+  [write] /home/kimoto/labo/tmp/myapp/lib/Myapp/Controller/Example.pm
+  [mkdir] /home/kimoto/labo/tmp/myapp/t
+  [write] /home/kimoto/labo/tmp/myapp/t/basic.t
+  [mkdir] /home/kimoto/labo/tmp/myapp/public
+  [write] /home/kimoto/labo/tmp/myapp/public/index.html
+  [mkdir] /home/kimoto/labo/tmp/myapp/templates/layouts
+  [write] /home/kimoto/labo/tmp/myapp/templates/layouts/default.html.ep
+  [mkdir] /home/kimoto/labo/tmp/myapp/templates/example
+  [write] /home/kimoto/labo/tmp/myapp/templates/example/welcome.html.ep
+</pre>
+<h3>ディレクトリ構成の簡単な解説</h3>
+<h4>public</h4>
+<p>
+  静的ファイルのディレクトリです。
+</p>
+<h4>templates</h4>
+<p>
+  テンプレートファイルのディレクトリです。
+</p>
+<h4>lib</h4>
+<p>
+  ライブラリを置くディレクトリです。
+</p>
+<h4>myapp.conf</h4>
+<p>
+  アプリケーションの設定ファイルです。
+</p>
+<h4>myapp</h4>
+<p>
+  Mojoliciousアプリケーションです。開発サーバーで起動するには<a href="/blog/20120406133367.html">morbo</a>(モーボ)、本番サーバーで起動するには<a href="/blog/20110122130016.html">hypnotoad</a>(ハイフノトード)を使います。
+</p>
+<p>
+  開発サーバー
+</p>
+<pre>
+morbo myapp
+</pre>
+<p>
+  本番サーバー
+</p>
+<pre>
+hypnotoad myapp
+</pre>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    Side Bar
+  </div>
+  <ul>
+    <li><a href="/list.html">Entries</a></li>
+    <li>Bar</li>
+    <li>Baz</li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="kimoto_system_link">
+  <a href="https://kimoto-system.co.jp">
+    <img src="https://kimoto-system.co.jp/images/kimoto-system-logo.png" alt="Perl Webシステム開発">
+    Perl Webシステム開発の木本システム
+  </a>
+</div>
+
+<div class="copyright">
+  Copyright © Yuki Kimoto
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>
