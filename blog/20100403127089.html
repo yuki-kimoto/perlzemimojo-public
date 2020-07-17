@@ -154,6 +154,57 @@ __DATA__
 &lt;/form&gt;
 &lt;/html&gt;
 </pre>
+<h3>本番環境+WebSocketリバースプロキシにも対応したRedisを使うバージョンのリアルタイムチャット</h3>
+<p>
+  本番環境WebSocketリバースプロキシにも対応したRedisを使うバージョンのリアルタイムチャットのロジックも紹介しておきます。
+</p>
+<p>
+  ApacheやnginxのWebSocketリバースプロキシを使って、Mojoliciousの本番サーバーhypnotoadで動くバージョンです。
+</p>
+<p>
+  Redisのpub/sub機能を組み合わせて実現しています。
+</p>
+<p>
+  パスの部分は必要に応じて「/」から必要なものに修正してください。index.html.epの一行目のパス「/」も合わせて修正してください。Apacheの場合は、WebSocket用のパスに分ける必要があります。
+</p>
+<pre>
+use strict;
+use warnings;
+
+use Mojolicious::Lite;
+
+websocket '/' =&gt; sub {
+  my $self = shift;
+
+  my $tx = $self-&gt;tx;
+  my $redis = Mojo::Redis-&gt;new;
+  my $pub = $redis-&gt;pubsub;
+  
+  # message from Redis
+  my $sub = $pub-&gt;listen('messages', sub {
+    my ($sub, $message) = @_; # $channel == messages
+    $tx-&gt;send($message);
+  });
+ 
+  # message from websocket
+  $self-&gt;on(message =&gt; sub {
+    my ($self, $message) = @_;
+    $pub-&gt;notify(messages =&gt; $message);
+  });
+ 
+  # need to clean up after websocket close
+  $self-&gt;on(finish =&gt; sub {
+    undef $redis;
+    undef $pub;
+    undef $sub;
+    undef $tx;
+  });
+};
+
+get '/' =&gt; 'index';
+
+app-&gt;start;
+</pre>
 
   </div>
   <div class="bottom">
