@@ -7,12 +7,12 @@
 <link rel="icon" type="image/x-icon" href="/images/mojotut_logo.png">
 <link rel="stylesheet" type="text/css" href="/css/common.css">
 
-<title>HTTPヘッダを取得する - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
-<meta name="description" content="HTTPヘッダを取得するにはMojo::Headersクラスのheaderメソッドを使用します。">
+<title>stash - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
+<meta name="description" content="stashの使い方の解説です。">
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:site" content="@perlzemi" />
-<meta name="twitter:title" content="HTTPヘッダを取得する - Mojolicious入門 - Perl Webフレームワーク Mojolicious" />
-<meta name="twitter:description" content="HTTPヘッダを取得するにはMojo::Headersクラスのheaderメソッドを使用します。" />
+<meta name="twitter:title" content="stash - Mojolicious入門 - Perl Webフレームワーク Mojolicious" />
+<meta name="twitter:description" content="stashの使い方の解説です。" />
 <meta name="twitter:image" content="https://mojolicious.perlzemi.com//images/twitter_card_large_kaeru.png" />
 
 
@@ -40,57 +40,13 @@
 
   </div>
   <div class="middle">
-    <h2><a href="/blog/20110502130707.html">HTTPヘッダを取得する</a></h2>
+    <h2><a href="/blog/20210605115957.html">stash</a></h2>
 <p>
-  HTTPヘッダを取得するにはMojo::Headersクラスの<strong>header</strong>メソッドを使用します。
+  stashの使い方の解説です。
 </p>
-<pre>
-my $x_forwarded_host = $headers-&gt;header('X-Forwarded-Host');
-</pre>
-<p>
-  またMojo::Headersクラスには一般的なヘッダを取得するためのショートカットメソッドがたくさん用意されています。
-</p>
-<pre>
-my $content_type = $headers-&gt;content_type;
-my $accept_language = $headers-&gt;accept_language;
-</pre>
+<h3>stash動画</h3>
 <ul>
-  <li>
-    <a href="https://mojodoc.perlzemi.com/Mojo%3A%3AHeaders">HTTPヘッダのショートカットメソッド</a>
-  </li>
-</ul>
-<p>
-  以下はMojolicious::Liteのサンプルです。Mojo::Message::RequestオブジェクトをMojolicious::Controllerオブジェクトのreqメソッドによって取得し、Mojo::HeadersオブジェクトをMojo::Message::Requestオブジェクトのheadersメソッドによって取得しています。
-</p>
-<pre>
-# Mojolicious::Lite
-use Mojolicious::Lite;
-
-get '/' =&gt; sub {
-  my $self = shift;
-  my $x_forwarded_host = $self-&gt;req-&gt;headers-&gt;header('X-Forwarded-Host');
-  my $content_type = $self-&gt;req-&gt;headers-&gt;content_type;
-  my $accept_language = $self-&gt;req-&gt;headers-&gt;accept_language;
-};
-</pre>
-<p>
-  以下はMojoliciousのサンプルです。
-</p>
-<pre>
-package MyApp::Diary;
-
-use Mojo::Base 'Mojolicious::Controller';
-
-sub entry {
-  my $self = shift;
-  my $x_forwarded_host = $self-&gt;req-&gt;headers-&gt;header('X-Forwarded-Host');
-  my $content_type = $self-&gt;req-&gt;headers-&gt;content_type;
-  my $accept_language = $self-&gt;req-&gt;headers-&gt;accept_language;
-}
-</pre>
-<h3>ヘッダ取得動画解説</h3>
-<ul>
-  <li><a href="https://www.youtube.com/watch?v=AXdUD6yxZLk">ヘッダ取得動画解説</a></li>
+  <li><a href="https://www.youtube.com/watch?v=pum5q31y9zI">stash動画解説</a></li>
 </ul>
 
   </div>
