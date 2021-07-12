@@ -77,11 +77,11 @@ my $content_type = 'image/png';
 my $ext;
 
 # PNG
-if ($content_type =~ m|image/png|) {
+if ($content_type =~ m|\bimage/png\b|) {
   $ext = 'png';
 }
 # JPEG
-elsif ($content_type =~ m|\bimage/jpeg\b| || $content_type =~ m|\bimage/jpeg\b|) {
+elsif ($content_type =~ m|\bimage/jpeg\b|) {
   $ext = 'jpg';
 }
 # GIF
