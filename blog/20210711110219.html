@@ -7,12 +7,12 @@
 <link rel="icon" type="image/x-icon" href="/images/mojotut_logo.png">
 <link rel="stylesheet" type="text/css" href="/css/common.css">
 
-<title>アップロードされたファイルのサイズを取得する - Mojolicious入門 - Perl Webフレームワーク</title>
-<meta name="description" content="アップロードされたファイルのサイズを取得してみましょう。アップロードされたファイルのサイズを取得するにはMojo::Uploadクラスのsizeメソッドを使用します。">
+<title>アップロードされたファイルのコンテントタイプを取得する - Mojolicious入門 - Perl Webフレームワーク</title>
+<meta name="description" content="アップロードされたファイルのコンテントタイプを取得するには、Mojo::Uploadクラスのheadersメソッドを使用し、Mojo::Headersオブジェクトを取得し、content_typeメソッドを呼び出します。">
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:site" content="@perlzemi" />
-<meta name="twitter:title" content="アップロードされたファイルのサイズを取得する - Mojolicious入門 - Perl Webフレームワーク" />
-<meta name="twitter:description" content="アップロードされたファイルのサイズを取得してみましょう。アップロードされたファイルのサイズを取得するにはMojo::Uploadクラスのsizeメソッドを使用します。" />
+<meta name="twitter:title" content="アップロードされたファイルのコンテントタイプを取得する - Mojolicious入門 - Perl Webフレームワーク" />
+<meta name="twitter:description" content="アップロードされたファイルのコンテントタイプを取得するには、Mojo::Uploadクラスのheadersメソッドを使用し、Mojo::Headersオブジェクトを取得し、content_typeメソッドを呼び出します。" />
 <meta name="twitter:image" content="https://mojolicious.perlzemi.com//images/twitter_card_large_kaeru.png" />
 
 
@@ -35,45 +35,68 @@
     
   </div>
   <div class="middle">
-    <h2><a href="/blog/20210712110219.html">アップロードされたファイルのサイズを取得する</a></h2>
+    <h2><a href="/blog/20210711110219.html">アップロードされたファイルのコンテントタイプを取得する</a></h2>
 <p>
-  アップロードされたファイルのサイズを取得してみましょう。アップロードされたファイルのサイズを取得するには<a href="https://www.mojolicious-document.com/Mojo::Upload.html">Mojo::Upload</a>クラスのsizeメソッドを使用します。
+  アップロードされたファイルのコンテントタイプを取得するには、<a href="https://www.mojolicious-document.com/Mojo::Upload.html">Mojo::Upload</a>クラスのheadersメソッドを使用し、<a href="https://www.mojolicious-document.com/Mojo::Headers.html">Mojo::Headers</a>オブジェクトを取得し、content_typeメソッドを呼び出します。
 </p>
 <pre>
-my $size = $upload-&gt;size;
+# アップロードされたファイルのコンテントタイプを取得する
+my $content_type = $upload-&gt;headers-&gt;content_type;
 </pre>
+<h3>コンテントタイプと拡張子</h3>
 <p>
-  フォームからファイルをアップロードする場合は、フォームで「form」要素の「enctype」属性を「multipart/form-data」にして、ファイルフィールド(file_field)を使って、<a href="https://www.mojolicious-document.com/Mojolicious::Controller.html">Mojo::Controller</a>クラスの<a href="/blog/20110501130707.html">param</a>メソッドを使うと、アップロードされたファイルは、<a href="https://www.mojolicious-document.com/Mojo::Upload.html">Mojo::Upload</a>オブジェクトとして取得できます。
+  一般的な画像のコンテントタイプとPDFの拡張子について記述しておきます。
 </p>
-<p>
-  <b>HTML側</b>
-</p>
+<h4>PNG</h4>
 <pre>
-&lt;form method="POST" enctype="multipart/form-data"&gt;
-  &lt;%= file_field 'image_file' %&gt;
-&lt;/form&gt;
+# 拡張子 コンテントタイプ
+png      image/png
 </pre>
-<p>
-  <b>プログラム側</b>
-</p>
+<h4>JPEG</h4>
 <pre>
-# アップロードされたファイル
-my $image_file = $c-&gt;param('image_file');
+# 拡張子 コンテントタイプ   
+jpeg     image/jpeg
+jpg      image/jpeg
 </pre>
-<h3>ファイルがアップロードされたかの確認</h3>
+<h4>GIF</h4>
+<pre>
+# 拡張子 コンテントタイプ
+gif      image/gif
+</pre>
+<h4>PDF</h4>
+<pre>
+# 拡張子 コンテントタイプ
+pdf      application/pdf
+</pre>
+<h3>コンテントタイプから拡張子を決定する</h3>
 <p>
-  一つ注意してほしいのは、フォームからのアップロードでは、ファイルがアップロードされなかった場合も、Mojo::Uploadオブジェクトが生成されることです。そのためファイルがアップロードされたかどうかは、<a href="https://tutorial.perlzemi.com/blog/20100219126425.html">defined関数</a>でチェックすることはできません。ファイルサイズをチェックする必要があります。
+  アップロードされたファイルを保存したい場合に、コンテントタイプの種類に応じて、ファイルの拡張性を作成したいという場合があると思います。そのようなロジックのサンプルをここに記述しておきます。<a href="https://tutorial.perlzemi.com/blog/20100827127859.html">正規表現</a>を使って判定しています。
 </p>
 <pre>
-# 正しいアップロードのチェック
-if ($image_file-&gt;size &gt; 0) {
-  
+my $content_type = 'image/png';
+my $ext;
+
+# PNG
+if ($content_type =~ m|image/png|) {
+  $ext = 'png';
+}
+# JPEG
+elsif ($content_type =~ m|\bimage/jpeg\b| || $content_type =~ m|\bimage/jpeg\b|) {
+  $ext = 'jpg';
+}
+# GIF
+elsif ($content_type =~ m|\bimage/gif\b|) {
+  $ext = 'gif';
+}
+# PDF
+elsif ($content_type =~ m|\bapplication/pdf\b|) {
+  $ext = 'pdf';
+}
+else {
+  # 予想していないコンテントタイプ
 }
 
-# 間違ったアップロードのチェック
-if (defined $image_file) {
-  
-}
+print "$ext\n";
 </pre>
 
   </div>
