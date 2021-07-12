@@ -7,12 +7,12 @@
 <link rel="icon" type="image/x-icon" href="/images/mojotut_logo.png">
 <link rel="stylesheet" type="text/css" href="/css/common.css">
 
-<title>スタッシュのデフォルト値の設定 - Mojolicious入門 - Perl Webフレームワーク</title>
-<meta name="description" content="スタッシュのデフォルト値を設定するにはMojoliciousクラスのdefaultsメソッドを使用します。">
+<title>アップロードしたファイルのサイズを取得する - Mojolicious入門 - Perl Webフレームワーク</title>
+<meta name="description" content="アップロードしたファイルのサイズを取得してみましょう。アップロードしたファイルのサイズを取得するにはMojo::Uploadクラスのsizeメソッドを使用します。">
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:site" content="@perlzemi" />
-<meta name="twitter:title" content="スタッシュのデフォルト値の設定 - Mojolicious入門 - Perl Webフレームワーク" />
-<meta name="twitter:description" content="スタッシュのデフォルト値を設定するにはMojoliciousクラスのdefaultsメソッドを使用します。" />
+<meta name="twitter:title" content="アップロードしたファイルのサイズを取得する - Mojolicious入門 - Perl Webフレームワーク" />
+<meta name="twitter:description" content="アップロードしたファイルのサイズを取得してみましょう。アップロードしたファイルのサイズを取得するにはMojo::Uploadクラスのsizeメソッドを使用します。" />
 <meta name="twitter:image" content="https://mojolicious.perlzemi.com//images/twitter_card_large_kaeru.png" />
 
 
@@ -35,24 +35,44 @@
     
   </div>
   <div class="middle">
-    <h2><a href="/blog/20110405130586.html">スタッシュのデフォルト値の設定</a></h2>
+    <h2><a href="/blog/20210712110219.html">アップロードしたファイルのサイズを取得する</a></h2>
 <p>
-  スタッシュのデフォルト値を設定するにはMojoliciousクラスの<strong>defaults</strong>メソッドを使用します。
+  アップロードしたファイルのサイズを取得してみましょう。アップロードしたファイルのサイズを取得するには<a href="https://www.mojolicious-document.com/Mojo::Upload.html">Mojo::Upload</a>クラスのsizeメソッドを使用します。
 </p>
 <pre>
-$app-&gt;defaults({foo =&gt; 'bar'});
+my $size = $upload-&gt;size;
 </pre>
 <p>
-  Mojolicious::LiteとMojoliciousでの使用例です。
+  フォームからファイルをアップロードする場合は、フォームで「form」要素の「enctype」属性を「multipart/form-data」にして、ファイルフィールド(file_field)を使って、<a href="https://www.mojolicious-document.com/Mojolicious::Controller.html">Mojo::Controller</a>クラスの<a href="/blog/20110501130707.html">param</a>メソッドを使うと、アップロードされたファイルは、<a href="https://www.mojolicious-document.com/Mojo::Upload.html">Mojo::Upload</a>オブジェクトとして取得できます。
+</p>
+<p>
+  <b>HTML側</b>
 </p>
 <pre>
-# Mojolicious::Lite
-app-&gt;defaults({foo =&gt; 'bar'});
+&lt;form method="POST" enctype="multipart/form-data"&gt;
+  &lt;%= file_field 'image_file' %&gt;
+&lt;/form&gt;
+</pre>
+<p>
+  <b>プログラム側</b>
+</p>
+<pre>
+# アップロードされたファイル
+my $image_file = $c-&gt;param('image_file');
+</pre>
+<h3>ファイルがアップロードされたかの確認</h3>
+<p>
+  一つ注意してほしいのは、フォームからのアップロードでは、ファイルがアップロードされなかった場合も、Mojo::Uploadオブジェクトが生成されることです。そのためファイルがアップロードされたかどうかは、<a href="https://tutorial.perlzemi.com/blog/20100219126425.html">defined関数</a>でチェックすることはできません。ファイルサイズをチェックする必要があります。
+</p>
+<pre>
+# 正しいアップロードのチェック
+if ($image_file-&gt;size &gt; 0) {
+  
+}
 
-# Mojolicious
-sub starup {
-  my $self = shift;
-  $self-&gt;defaults({foo =&gt; 'bar'});
+# 間違ったアップロードのチェック
+if (defined $image_file) {
+  
 }
 </pre>
 

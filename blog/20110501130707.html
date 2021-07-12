@@ -7,12 +7,12 @@
 <link rel="icon" type="image/x-icon" href="/images/mojotut_logo.png">
 <link rel="stylesheet" type="text/css" href="/css/common.css">
 
-<title>パラメーターを取得する - Mojolicious入門 - Perl Webフレームワーク Mojolicious</title>
-<meta name="description" content="Mojoliciousでパラメーターといった場合次の三つの要素を含むことが多いので、まず次の三つのものの区別をしておきましょう。">
+<title>パラメーターを取得する - param, every_param - Mojolicious入門 - Perl Webフレームワーク</title>
+<meta name="description" content="パラメーターを取得するには、paramメソッド、every_paramメソッドを使用します。">
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:site" content="@perlzemi" />
-<meta name="twitter:title" content="パラメーターを取得する - Mojolicious入門 - Perl Webフレームワーク Mojolicious" />
-<meta name="twitter:description" content="Mojoliciousでパラメーターといった場合次の三つの要素を含むことが多いので、まず次の三つのものの区別をしておきましょう。" />
+<meta name="twitter:title" content="パラメーターを取得する - param, every_param - Mojolicious入門 - Perl Webフレームワーク" />
+<meta name="twitter:description" content="パラメーターを取得するには、paramメソッド、every_paramメソッドを使用します。" />
 <meta name="twitter:image" content="https://mojolicious.perlzemi.com//images/twitter_card_large_kaeru.png" />
 
 
@@ -23,7 +23,7 @@
         <!-- header -->
 <div class="main">
   <h1>
-    <a href="/">Mojolicious入門 - Perl Webフレームワーク Mojolicious</a>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク</a>
   </h1>
 </div>
 
@@ -32,15 +32,20 @@
         <div class="content">
           <div class="entry">
   <div class="top">
-    <div style="text-align:center;">
-  <a href="https://www.perlri.com/book/perl_text_essense" rel="nofollow"><img src="https://tutorial.perlzemi.com/images/book/perl_text_essence.jpg" style="width:80px;margin:0 auto;"></a><br><a href="https://www.perlri.com/book/perl_text_essense" rel="nofollow" style="font-size:20px;">Perlテキスト処理のエッセンス発売中</a>
-
-</div>
-<!-- top -->
-
+    
   </div>
   <div class="middle">
-    <h2><a href="/blog/20110501130707.html">パラメーターを取得する</a></h2>
+    <h2><a href="/blog/20110501130707.html">パラメーターを取得する - param, every_param</a></h2>
+<p>
+  パラメーターを取得するには、paramメソッド、every_paramメソッドを使用します。
+</p>
+<pre>
+# ひとつのパラメーター
+my $name = $c-&gt;param('name');
+
+# すべてのパラメーター
+my $names = $c-&gt;every_param('name');
+</pre>
 <p>
   Mojoliciousでパラメーターといった場合次の三つの要素を含むことが多いので、まず次の三つのものの区別をしておきましょう。
 </p>
