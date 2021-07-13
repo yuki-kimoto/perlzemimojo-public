@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- meta -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
+<link rel="icon" type="image/x-icon" href="/images/mojotut_logo.png">
+<link rel="stylesheet" type="text/css" href="/css/common.css">
+
+<title>複数ファイルアップロードのバリデーション - Mojolicious入門 - Perl Webフレームワーク</title>
+<meta name="description" content="複数ファイルアップロードのバリデーションを書いてみましょう。">
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="@perlzemi" />
+<meta name="twitter:title" content="複数ファイルアップロードのバリデーション - Mojolicious入門 - Perl Webフレームワーク" />
+<meta name="twitter:description" content="複数ファイルアップロードのバリデーションを書いてみましょう。" />
+<meta name="twitter:image" content="https://mojolicious.perlzemi.com//images/twitter_card_large_kaeru.png" />
+
+
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <!-- header -->
+<div class="main">
+  <h1>
+    <a href="/">Mojolicious入門 - Perl Webフレームワーク</a>
+  </h1>
+</div>
+
+      </div>
+      <div class="main">
+        <div class="content">
+          <div class="entry">
+  <div class="top">
+    
+  </div>
+  <div class="middle">
+    <h2><a href="/blog/20210713104027.html">複数ファイルアップロードのバリデーション</a></h2>
+<p>
+  複数ファイルアップロードのバリデーションを書いてみましょう。
+</p>
+<p>
+  <b>HTML側</b>
+</p>
+<p>
+  HTML側のファイルアップロードのフォームです。四つのファイルアプロードのフィールドがあります。エラー表示と削除に対応しているものです。
+</p>
+<pre>
+&lt;form action=&lt;%= url_for %&gt; method="POST", enctype="multipart/form-data"&gt;
+  %= hidden_field op =&gt; 'update';
+  %= hidden_field id =&gt; $id;
+  &lt;ul&gt;
+    &lt;li&gt;
+      画像1. &lt;%= file_field 'image1' %&gt;
+      &lt;div class="error"&gt;&lt;%= $errors-&gt;{'image1'} ? $errors-&gt;{'image1'} : '' %&gt;&lt;/div&gt;
+      削除 &lt;%= check_box 'image1_delete' %&gt;
+    &lt;/li&gt;
+    &lt;li&gt;
+      画像2. &lt;%= file_field 'image2' %&gt;
+      &lt;div class="error"&gt;&lt;%= $errors-&gt;{'image2'} ? $errors-&gt;{'image2'} : '' %&gt;&lt;/div&gt;
+      削除 &lt;%= check_box 'image2_delete' %&gt;
+    &lt;/li&gt;
+    &lt;li&gt;
+      画像3. &lt;%= file_field 'image3' %&gt;
+      &lt;div class="error"&gt;&lt;%= $errors-&gt;{'image3'} ? $errors-&gt;{'image3'} : '' %&gt;&lt;/div&gt;
+      削除 &lt;%= check_box 'image3_delete' %&gt;
+    &lt;/li&gt;
+    &lt;li&gt;
+      画像4. &lt;%= file_field 'image4' %&gt;
+      &lt;div class="error"&gt;&lt;%= $errors-&gt;{'image4'} ? $errors-&gt;{'image4'} : '' %&gt;&lt;/div&gt;
+      削除 &lt;%= check_box 'image4_delete' %&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/form&gt;
+</pre>
+<p>
+  <b>プログラム側</b>
+</p>
+<p>
+  プログラム側のサンプルコードです。パラメーターで取得したものは、<a href="https://www.mojolicious-document.com/Mojo::Upload.html">Mojo::Upload</a>オブジェクトになります。複数のファイルフィールドの値をとって、画像情報を作成して、<a href="https://tutorial.perlzemi.com/blog/20180214151861.html">配列のリファレンス</a>にしています。
+</p>
+<p>
+  ファイルのサイズがあった場合に、ファイルの種類を判定しています。
+</p>
+<pre>
+&lt;%
+  my $op = param('op') // '';
+  my $id = param('id');
+
+  my $errors = {};
+  if ($self-&gt;req-&gt;method eq 'POST') {
+    if ($op eq 'update') {
+
+      # パラメーターの取得
+      my $images = [];
+      my $image_count = 4;
+      for (my $number = 1; $number &lt;= $image_count; $number++) {
+        
+        my $image_upload = param("image$number");
+        
+        my $image = {
+          upload =&gt; $image_upload,
+          number =&gt; $number,
+        };
+        
+        push @$images, $image;
+      }
+
+      # バリデーション
+      for my $image (@$images) {
+        my $image_upload = $image-&gt;{upload};
+        
+        if ($image_upload-&gt;size &gt; 0) {
+          # コンテントタイプ
+          my $image_content_type = $image_upload-&gt;headers-&gt;content_type;
+          
+          # 拡張子
+          my $ext;
+
+          # PNG
+          if ($image_content_type =~ m|\bimage/png\b|) {
+            $ext = 'png';
+          }
+          # JPEG
+          elsif ($image_content_type =~ m|\bimage/jpeg\b|) {
+            $ext = 'jpg';
+          }
+          # GIF
+          elsif ($image_content_type =~ m|\bimage/gif\b|) {
+            $ext = 'gif';
+          }
+          # PDF
+          elsif ($image_content_type =~ m|\bapplication/pdf\b|) {
+            $ext = 'pdf';
+          }
+          
+          unless (defined $ext) {
+            my $number = $image-&gt;{number};
+            $errors-&gt;{"image$number"} = "画像$image-&gt;{number}のファイルの種類が不正です。";
+          }
+        }
+      }
+    }
+  }
+}
+%&gt;
+</pre>
+
+  </div>
+  <div class="bottom">
+    <!-- bottom -->
+
+<h3>Mojolicious入門のご紹介</h3>
+
+<div class="youtube_block">
+  <div class="youtube">
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/epzAUT8nzF8" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  </div>
+</div>
+
+<div style="text-align:center;margin-top:30px;font-weight:bold;font-size:22px;">
+MojoliciousによるWebプログラミングの基礎としてのPerlテキスト処理プログラミングを学べる教材
+</div>
+<div style="text-align:center;margin-top:30px;">
+  <a href="https://www.perlri.com/book/perl_text_essense" rel="nofollow"><img src="https://tutorial.perlzemi.com/images/book/perl_text_essence.jpg" style="width:260px;margin:0 auto;"></a><br><a href="https://www.perlri.com/book/perl_text_essense" rel="nofollow" style="font-size:20px;">Perlテキスト処理のエッセンス発売中</a>
+</div>
+
+  </div>
+</div>
+
+        </div>
+        <div class="side">
+          <!-- side -->
+<div class="side-list">
+  <div class="side-list-title">
+    講座制作
+  </div>
+  <ul>
+    <li style="padding-top:20px;padding-bottom:20px;text-align:center"><img width="120" src="/images/kaeru_w_01.png"><a href="http://www.perlri.com/"><br>Perl元気塾</a></li>
+  </ul>
+  <div class="side-list-title">
+    コンテンツ
+  </div>
+  <ul>
+    <li><a href="/list.html">新着情報</a></li>
+  </ul>
+  <div class="side-list-title" style="margin-top:30px;">
+    Perlテキスト処理のエッセンス
+  </div>
+  <ul>
+    <li style="text-align:center;">
+      <a rel="nofollow" href="https://www.perlri.com/book/perl_text_essense"><img src="https://tutorial.perlzemi.com/images/book/perl_text_essence.jpg" width="160"></a><br>
+      <a rel="nofollow" href="https://www.perlri.com/book/perl_text_essense">Perlテキスト処理のエッセンス</a><br>
+      MojoliciousによるWebプログラミングの基礎としてのPerlテキスト処理プログラミングを学べる教材
+    </li>
+  </ul>
+</div>
+
+        </div>
+      </div>
+      <div class="footer">
+        <div class="what_is_this_site">
+  <div class="inside">
+    <a href="https://tutorial.perlzemi.com/">Perl</a>の<b>WebフレームワークMojoliciousの入門講座</b>です。URLのルーティング、HTMLテンプレート、レスポンスの生成、JSON、Ajaxリクエスト、ログ出力、Webサーバー起動などが学べます。Mojoliciousの実行環境は、<a href="https://linux.perlzemi.com/">Unix/Linux</a>ディストーリビューションである、Debian、<a href="https://www.ubuntu-perl-web.com/">Ubuntu</a>、<a href="https://centos.perlzemi.com/">CentOS</a>、FreeBSDなどを想定します。Perl総合研究所では、オープンソースへの貢献として<a href="https://www.mojolicious-document.com/">Mojoliciousドキュメントの日本語訳</a>を行っています。
+  </div>
+</div>
+
+<div class="perlri_link">
+  <a href="http://www.perlri.com">
+    Perl元気塾
+  </a>
+</div>
+
+      </div>
+    </div>
+  </body>
+</html>
