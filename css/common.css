@@ -58,9 +58,11 @@
   }
   
   .inside {
-    width:1080px;
+    width:calc(100% - 30px);
+    max-width:1080px;
     margin:0 auto;
   }
+  
   /* footer */
   .footer .perlri_link img {
     width:105px;
